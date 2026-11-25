@@ -19,7 +19,7 @@
   --bg:#0d1422; --panel:#151f33; --panel2:#1c2840; --line:#2b3953;
   --fg:#eef2f8; --muted:#8e9bb5;
   --white-side:#f4f6f9; --white-ink:#121826;
-  --blue-side:#1746c9; --blue-ink:#ffffff;
+  --blue-side:#1746c9; --blue-ink:#ffffff; --b-btn:#2c5ae0; --b-hl:#ffd0d0;
   --clock:#ffb21f; --gs:#ff7a1a; --red:#e5383b; --shido:#ffd21f; --ok:#2fbf71;
   --r:12px;
   --font: system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;
@@ -92,6 +92,11 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .ob.b{background:var(--blue-side);color:var(--blue-ink)}
 .ob small{display:block;font-size:11px;font-weight:700;opacity:.7}
 .toketa{grid-column:span 2;background:var(--clock);color:#1a1200;border-radius:var(--r);font-weight:900;font-size:19px}
+/* 抑込ボタンはスコア欄と同じ左右に置く：[左の抑込][はじめ][右の抑込] */
+.ctl{grid-template-columns:1fr 1.3fr 1fr}
+#btnOsaeW,#rpOsaeW{order:1} #btnHajime,#rpHajime{order:2} #btnOsaeB,#rpOsaeB{order:3} #btnToketa,#rpToketa{order:4}
+body.swap #btnOsaeW,body.swap #rpOsaeW{order:3}
+body.swap #btnOsaeB,body.swap #rpOsaeB{order:1}
 
 .rpl{display:flex;gap:8px;align-items:stretch}
 .rbtn{flex:1;background:#7b2cbf;color:#fff;border-radius:var(--r);font-weight:800;font-size:16px;padding:11px 8px}
@@ -118,9 +123,11 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .sbtns.noyuko{grid-template-columns:repeat(4,1fr)}
 .sbtns button{border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;white-space:nowrap}
 .side.w .sbtns button{background:#dfe4ec;color:var(--white-ink)}
-.side.b .sbtns button{background:#2c5ae0;color:#fff}
+.side.b .sbtns button{background:var(--b-btn);color:#fff}
 .sbtns button.h{color:var(--red)!important}
-.side.b .sbtns button.h{color:#ffd0d0!important}
+.side.b .sbtns button.h{color:var(--b-hl)!important}
+/* 赤白（紅白）モード：青側を赤に */
+body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 
 /* bottom tools + log */
 .tools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -140,16 +147,40 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .sheet{position:fixed;inset:0;background:rgba(3,6,12,.92);z-index:20;display:flex;flex-direction:column;
   padding:max(10px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));gap:10px}
 .sheet h2{margin:0;font-size:17px}
-.rp video{width:100%;flex:1;min-height:0;background:#000;border-radius:var(--r);object-fit:contain}
+.rp{gap:6px}
+.rvwrap{position:relative;flex:1;min-height:0;background:#000;border-radius:var(--r);overflow:hidden}
+.rp video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+/* 再生速度は映像の左上に重ねる */
+.rp .rate{position:absolute;left:8px;top:8px;background:rgba(8,12,22,.66);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.rp .rate button{color:#cfd6e4;padding:6px 10px}
+.rp .rate button[aria-pressed="true"]{background:var(--clock);color:#1a1200}
+/* ライブのカメラ映像は右下の隅に小さく（タップでリプレイを閉じる） */
+.pip{position:absolute;right:8px;bottom:8px;width:min(30%,240px);padding:0;border-radius:10px;overflow:hidden;
+  background:#000;box-shadow:0 0 0 2px rgba(255,255,255,.85),0 4px 14px rgba(0,0,0,.6);line-height:0}
+.pip canvas{width:100%;height:auto;display:block}
+.pip span{position:absolute;left:5px;top:5px;line-height:1;background:var(--red);color:#fff;font-size:11px;font-weight:800;padding:3px 6px;border-radius:5px}
+.rpfoot{display:flex;flex-direction:column;gap:6px}
 .rp .bar{display:flex;gap:10px;align-items:center;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
 .rp input[type=range]{flex:1;accent-color:var(--clock)}
 .rp .ctlrow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rp .ctlrow button{background:var(--panel2);border-radius:10px;padding:12px 2px;font-weight:800}
 .rp .ctlrow .pp{background:var(--clock);color:#1a1200}
 .rp .row2{display:flex;gap:8px;align-items:center}
-.rp .close{margin-left:auto;background:var(--fg);color:var(--bg);border-radius:10px;padding:11px 16px;font-weight:800}
-.rp .hdr{display:flex;align-items:center;gap:10px}
-.rp .hdr span{color:var(--muted);font-size:13px}
+.rp .close{background:var(--fg);color:var(--bg);border-radius:10px;padding:8px 14px;font-weight:800;order:9}
+.rp .hdr{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
+.rp .rpttl{display:flex;align-items:baseline;gap:10px;min-width:0}
+.rp .rpttl span{color:var(--muted);font-size:13px}
+.rplive{display:flex;gap:6px;align-items:stretch;margin-left:auto;flex-wrap:wrap}
+.rplive .clockmini{background:var(--panel);border-radius:10px;padding:2px 12px;font-size:28px;font-weight:800;line-height:1.2;
+  color:var(--clock);font-variant-numeric:tabular-nums;display:flex;align-items:center}
+.rplive .clockmini.run{color:#fff}
+.rplive .clockmini.gs{color:var(--gs)}
+.rplive .osae{min-width:0;flex-direction:row;gap:6px;padding:2px 10px;border-radius:10px}
+.rplive .osae b{font-size:24px}
+.rplive .hajime{font-size:16px;letter-spacing:.04em;padding:8px 16px;border-radius:10px}
+.rplive .ob{padding:4px 12px;border-radius:10px;font-size:14px}
+.rplive .toketa{padding:8px 16px;font-size:16px;border-radius:10px}
+.osae.held{opacity:.8;border-style:dashed}
 
 .st{overflow:auto}
 .st form{display:flex;flex-direction:column;gap:2px;max-width:560px;width:100%;margin:0 auto}
@@ -171,14 +202,75 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);
   padding:10px 16px;border-radius:999px;font-weight:700;z-index:40;max-width:90vw;text-align:center}
 
-/* landscape: camera left, controls right */
+.ctrlzone{display:flex;flex-direction:column;gap:8px;min-width:0}
+
+/* landscape: 白 left | camera (max size) + one-row match controls | 青 right (swappable).
+   Header and tool buttons float over the top of the camera so the camera gets the full height. */
 @media (orientation:landscape) and (min-width:640px){
-  .app{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,1fr);grid-template-rows:auto 1fr;height:100%;min-height:0}
-  .top{grid-column:1/-1}
-  .stage{max-height:none;height:100%;aspect-ratio:auto;align-self:stretch}
-  .panel{overflow:auto;min-height:0}
+  html,body{overflow:hidden}
+  .app{display:grid;height:100%;min-height:0;gap:6px;
+    grid-template-columns:minmax(112px,15%) minmax(0,1fr) minmax(112px,15%);
+    grid-template-rows:minmax(0,1fr) auto;
+    grid-template-areas:"w stage b" "w ctrl b";
+    padding-top:max(6px,env(safe-area-inset-top,0px));padding-bottom:max(6px,env(safe-area-inset-bottom,0px))}
+  body.swap .app{grid-template-areas:"b stage w" "b ctrl w"}
+  .top,.tools{grid-area:stage;align-self:start;z-index:4;display:flex;gap:5px;padding:6px}
+  .top{justify-self:start}
+  .tools{justify-self:end}
+  .top .brand,#btnCopy{display:none}
+  .top .ib,.tools button{background:rgba(8,12,22,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+    padding:6px 9px;font-size:12px;border-radius:8px;color:#fff}
+  .top .rec.on{background:var(--red)}
+  .tools button.armed{background:var(--red)}
+  .log{display:none}
+  .stage{grid-area:stage;max-height:none;height:100%;aspect-ratio:auto;min-height:0;border-radius:10px}
+  .recbadge{top:auto;left:auto;bottom:8px;right:8px}
+  .camsw{top:auto;bottom:36px;right:8px}
+  .banner{grid-area:stage;align-self:start;justify-self:center;margin-top:44px;z-index:3;font-size:14px;padding:5px 12px;max-width:calc(100% - 16px)}
+  .side.w{grid-area:w}
+  .side.b{grid-area:b}
+  .side{min-height:0;overflow:auto;gap:5px;padding:6px}
+  .shead{flex-direction:column;align-items:stretch;gap:0}
+  .sname{text-align:center;font-size:15px;flex:none}
+  .tally{justify-content:center;gap:6px;flex-wrap:wrap;min-height:34px}
+  .tally .t{font-size:10px}
+  .tally .t b{font-size:30px}
+  .sbtns,.sbtns.noyuko{grid-template-columns:1fr;flex:1;grid-auto-rows:minmax(32px,1fr);gap:4px}
+  .sbtns button{padding:2px;font-size:15px}
+  .ctrlzone{grid-area:ctrl;display:flex;flex-direction:row;gap:6px;align-items:stretch;min-width:0}
+  .board{display:flex;gap:6px}
+  .clock{flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0 10px;border-radius:10px}
+  .clock #clk{font-size:clamp(28px,4.4vw,42px)}
+  .clock small{font-size:10px}
+  .osae{min-width:0;padding:2px 8px;border-radius:10px}
+  .osae span{font-size:10px}
+  .osae b{font-size:22px}
+  .ctl{flex:1.25;min-width:0;grid-template-columns:1fr 1.2fr 1fr;gap:5px}
+  .hajime{font-size:17px;padding:6px 2px;border-radius:10px}
+  .ob{padding:2px;font-size:13px;border-radius:10px}
+  .ob small{font-size:10px}
+  .toketa{font-size:16px;border-radius:10px}
+  .ctl{flex:1}
+  .rpl{flex:none;gap:5px}
+  .rbtn{flex:none;padding:6px 12px;font-size:14px;white-space:nowrap;border-radius:10px;line-height:1.15}
+  .rpsfx{display:none}
+  .rpl .seg{border-radius:10px}
+  .rpl .seg button{padding:4px 6px;font-size:12px}
+  .mark{padding:0 9px;border-radius:10px}
+  /* リプレイ：シークバーと操作ボタンを1行にまとめて映像を大きく */
+  .rpfoot{flex-direction:row;align-items:center;gap:10px}
+  .rpfoot .bar{flex:1;min-width:0}
+  .rp .ctlrow{flex:none;width:min(52%,440px)}
+  .rp .ctlrow button{padding:8px 2px;font-size:13px}
+  .rp .hdr h2{font-size:15px}
+  .pip{width:min(26%,220px)}
 }
-.panel{display:flex;flex-direction:column;gap:8px;min-width:0}
+.rpshort{display:none}
+/* narrow landscape (small phones / notch insets): drop the seconds picker, show the seconds on the button */
+@media (orientation:landscape) and (min-width:640px) and (max-width:819px){
+  .rpl .seg{display:none}
+  .rpshort{display:block;font-size:11px;font-weight:700;opacity:.85}
+}
 </style>
 </head>
 <body>
@@ -188,6 +280,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     <button class="ib rec" id="btnRec" disabled><i></i><span id="recLbl">録画</span></button>
     <button class="ib" id="btnSave" disabled>保存</button>
     <button class="ib" id="btnSettings" aria-label="設定">設定</button>
+    <button class="ib" id="btnFull" hidden>全画面</button>
   </header>
 
   <div class="stage" id="stage">
@@ -204,27 +297,29 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     </div>
   </div>
 
-  <div class="panel">
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="ctrlzone">
     <div class="board">
       <div class="clock" id="clockBox"><span id="clk">4:00</span><small id="clkTag">本戦</small></div>
       <div class="osae" id="osaeBox" hidden><span id="osaeLbl">抑込</span><b id="osaeT">0.0</b></div>
     </div>
-    <div class="banner" id="banner" hidden></div>
 
     <div class="ctl">
       <button class="hajime" id="btnHajime">はじめ</button>
       <button class="ob w" id="btnOsaeW"><small>白</small>抑込</button>
-      <button class="ob b" id="btnOsaeB"><small>青</small>抑込</button>
+      <button class="ob b" id="btnOsaeB"><small class="cn">青</small>抑込</button>
       <button class="toketa" id="btnToketa" hidden>解けた</button>
     </div>
 
     <div class="rpl">
-      <button class="rbtn" id="btnReplay">リプレイ（<span id="rpSecLbl">10</span>秒前）</button>
+      <button class="rbtn" id="btnReplay">リプレイ<span class="rpsfx">（<span id="rpSecLbl">10</span>秒前）</span><span class="rpshort"><span id="rpSecLbl2">10</span>秒前から</span></button>
       <div class="seg" id="rpSeg" role="group" aria-label="何秒前から再生するか">
         <button data-s="5">5</button><button data-s="10">10</button><button data-s="15">15</button><button data-s="30">30</button>
       </div>
       <button class="mark" id="btnMark">印</button>
     </div>
+  </div>
 
     <section class="side w" id="side-w" data-side="w">
       <div class="shead">
@@ -267,26 +362,38 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
       <h2>試合記録（タップで映像を確認）</h2>
       <ol id="logList"></ol>
     </div>
-  </div>
 </div>
 
 <!-- replay -->
 <div class="sheet rp" id="rp" hidden>
-  <div class="hdr"><h2>ビデオ確認</h2><span id="rpInfo"></span></div>
-  <video id="rv" playsinline></video>
-  <div class="bar"><span id="rpCur">0:00.0</span><input type="range" id="rpSeek" min="0" max="1000" value="0" aria-label="再生位置"><span id="rpDur">0:00</span></div>
-  <div class="ctlrow">
-    <button id="rpB2">−2秒</button>
-    <button id="rpBF">◀ コマ</button>
-    <button id="rpPP" class="pp">一時停止</button>
-    <button id="rpFF">コマ ▶</button>
-    <button id="rpF2">+2秒</button>
+  <div class="hdr">
+    <div class="rpttl"><h2>ビデオ確認</h2><span id="rpInfo"></span></div>
+    <div class="rplive" aria-label="試合の操作">
+      <span class="clockmini" id="rpClk">4:00</span>
+      <div class="osae" id="rpOsae" hidden><span id="rpOsaeLbl">抑込</span><b id="rpOsaeT">0.0</b></div>
+      <button class="hajime" id="rpHajime">はじめ</button>
+      <button class="ob w" id="rpOsaeW"><small>白</small>抑込</button>
+      <button class="ob b" id="rpOsaeB"><small class="cn">青</small>抑込</button>
+      <button class="toketa" id="rpToketa" hidden>解けた</button>
+      <button class="close" id="rpClose">閉じる</button>
+    </div>
   </div>
-  <div class="row2">
-    <div class="seg" id="rpRate" role="group" aria-label="再生速度">
+  <div class="rvwrap">
+    <video id="rv" playsinline></video>
+    <div class="seg rate" id="rpRate" role="group" aria-label="再生速度">
       <button data-r="0.25">¼倍</button><button data-r="0.5">½倍</button><button data-r="1">等倍</button>
     </div>
-    <button class="close" id="rpClose">閉じる</button>
+    <button class="pip" id="rpPip" aria-label="ライブ映像（タップでリプレイを閉じる）"><canvas id="pipCv" width="320" height="180"></canvas><span>ライブ</span></button>
+  </div>
+  <div class="rpfoot">
+    <div class="bar"><span id="rpCur">0:00.0</span><input type="range" id="rpSeek" min="0" max="1000" value="0" aria-label="再生位置"><span id="rpDur">0:00</span></div>
+    <div class="ctlrow">
+      <button id="rpB2">−2秒</button>
+      <button id="rpBF">◀ コマ</button>
+      <button id="rpPP" class="pp">一時停止</button>
+      <button id="rpFF">コマ ▶</button>
+      <button id="rpF2">+2秒</button>
+    </div>
   </div>
 </div>
 
@@ -296,7 +403,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     <h2>設定</h2>
     <div class="sec">選手</div>
     <div class="f"><label for="sNameW">白の選手名</label><input type="text" id="sNameW" maxlength="16"></div>
-    <div class="f"><label for="sNameB">青の選手名</label><input type="text" id="sNameB" maxlength="16"></div>
+    <div class="f"><label for="sColor">色の組み合わせ<small>大会に合わせて選びます</small></label>
+      <select id="sColor"><option value="blue">青・白</option><option value="red">赤・白</option></select></div>
+    <div class="f"><label for="sNameB"><span class="cn">青</span>の選手名</label><input type="text" id="sNameB" maxlength="16"></div>
+    <div class="f"><label for="sSwap">スコアの左右を入れ替える<small id="sSwapHint">オフ：白が左　オン：白が右（カメラから見た選手の位置に合わせます）</small></label><input type="checkbox" id="sSwap"></div>
     <div class="sec">試合ルール</div>
     <div class="f"><label for="sDur">試合時間</label>
       <select id="sDur"><option value="60">1分</option><option value="90">1分30秒</option><option value="120">2分</option><option value="150">2分30秒</option><option value="180">3分</option><option value="240">4分</option><option value="300">5分</option></select></div>
@@ -311,6 +421,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     <div class="f"><label for="sAu">音声も録音</label><input type="checkbox" id="sAu"></div>
     <div class="f"><label for="sQ">画質</label>
       <select id="sQ"><option value="720">標準（720p）</option><option value="1080">高画質（1080p）</option><option value="480">軽量（480p）</option></select></div>
+    <div class="f"><label for="sRp">リプレイ開始<small>「リプレイ」で何秒前から再生するか</small></label>
+      <select id="sRp"><option value="5">5秒前</option><option value="10">10秒前</option><option value="15">15秒前</option><option value="30">30秒前</option></select></div>
     <div class="f"><label for="sBz">終了ブザー</label><input type="checkbox" id="sBz"></div>
     <button type="submit" class="done">保存して閉じる</button>
     <p class="note">試合時間・ルールの変更は「次の試合」から反映されます。撮影した映像は端末内のメモリにだけ保持され、どこにも送信されません。長時間撮影するとメモリを多く使うため、1試合ごとに「保存」→「次の試合」で区切るのがおすすめです。</p>
@@ -340,7 +452,7 @@ const LABEL = {ippon:'一本', waza:'技あり', yuko:'有効', shido:'指導', 
 
 /* ---------- settings ---------- */
 const DEF = {nameW:'白', nameB:'青', dur:240, gs:true, yuko:true, awasete:true, oI:20, oW:10, oY:5,
-  overlay:true, audio:true, q:720, buzzer:true, replay:10, facing:'environment'};
+  overlay:true, audio:true, q:720, buzzer:true, replay:10, facing:'environment', swap:false, color:'blue'};
 let cfg = (() => { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem('judoScoreCam.cfg') || '{}')); } catch (e) { return Object.assign({}, DEF); } })();
 function saveCfg(){ try { localStorage.setItem('judoScoreCam.cfg', JSON.stringify(cfg)); } catch (e) {} }
 
@@ -349,11 +461,16 @@ const blank = () => ({ippon:0, waza:0, yuko:0, shido:0, hansoku:0});
 let M;
 function newMatch(){
   M = {dur: cfg.dur*1000, remain: cfg.dur*1000, running:false, gs:false, gsT:0,
-       score:{w:blank(), b:blank()}, result:null, osae:null, log:[], hist:[]};
+       score:{w:blank(), b:blank()}, result:null, osae:null, osaeHold:null, log:[], hist:[]};
 }
 newMatch();
 
-function name(s){ return s==='w' ? (cfg.nameW||'白') : (cfg.nameB||'青'); }
+const CN = () => cfg.color === 'red' ? '赤' : '青';
+const bRGBA = a => cfg.color === 'red' ? 'rgba(200,16,46,' + a + ')' : 'rgba(23,70,201,' + a + ')';
+function name(s){
+  if (s === 'w') return cfg.nameW || '白';
+  return (!cfg.nameB || cfg.nameB === '青' || cfg.nameB === '赤') ? CN() : cfg.nameB;   // 既定名は色に合わせる
+}
 function fmtClock(ms, up){
   const s = up ? Math.floor(ms/1000) : Math.ceil(ms/1000);
   return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
@@ -387,10 +504,11 @@ function leadReason(s){
   return '有効優勢';
 }
 
-function award(side, type, note){
+function award(side, type, note, replace){
   if (M.result) { toast('試合は終了しています（取消で戻せます）'); return; }
   pushHist();
   const sc = M.score[side];
+  if (replace && sc[replace] > 0) sc[replace]--;   // 抑込の格上げ（有効→技あり→一本）
   sc[type]++;
   addLog(side, LABEL[type] + (type==='shido' ? '（' + sc.shido + '）' : '') + (note ? ' ' + note : ''));
   if (type === 'ippon') return finish(side, '一本');
@@ -401,6 +519,7 @@ function award(side, type, note){
 }
 
 function finish(winner, reason){
+  if (M.osae) M.osaeHold = {side: M.osae.side, t: M.osae.t};
   M.running = false; M.osae = null;
   M.result = {winner, reason};
   addLog(winner || 'x', winner ? 'それまで　' + name(winner) + 'の勝ち（' + reason + '）' : 'それまで　' + reason);
@@ -421,6 +540,7 @@ function toggleClock(){
   if (M.running) {            // まて
     if (M.osae) endOsae();
     M.running = false;
+    M.osaeHold = null;        // 解けた後に残していた抑込時間は「まて」で消す
   } else {                     // はじめ
     if (!M.gs && M.remain <= 0) return;
     M.running = true;
@@ -431,19 +551,31 @@ function toggleClock(){
 function startOsae(side){
   if (M.result || M.osae) return;
   if (!M.gs && M.remain <= 0) return;
-  M.osae = {side, t:0};
+  M.osae = {side, t:0, got:null}; M.osaeHold = null;
   M.running = true;
   unlockAudio();
 }
+// 抑込の秒数に届いた時点でスコアを付ける（有効5秒→技あり10秒→一本20秒）。
+// 1回の抑込で得るのは1つだけなので、上の段階に届いたら前に付けた分を置き換える。
+const RANK = {yuko:1, waza:2, ippon:3};
+function osaeLevel(s){
+  if (s >= cfg.oI) return 'ippon';
+  if (s >= cfg.oW) return 'waza';
+  if (cfg.yuko && s >= cfg.oY) return 'yuko';
+  return null;
+}
+function osaeAward(o){
+  const type = osaeLevel(o.t/1000);
+  if (!type || (o.got && RANK[type] <= RANK[o.got])) return;
+  const prev = o.got; o.got = type;
+  award(o.side, type, '（抑込 ' + (o.t/1000).toFixed(1) + '秒' + (prev ? '・' + LABEL[prev] + 'から' : '') + '）', prev);
+  if (!M.result) beep(150, 1500);
+}
 function endOsae(){
   const o = M.osae; if (!o) return;
-  M.osae = null;
-  const s = o.t/1000, note = '（抑込 ' + s.toFixed(1) + '秒）';
-  let type = null;
-  if (s >= cfg.oI) type = 'ippon';
-  else if (s >= cfg.oW) type = 'waza';
-  else if (cfg.yuko && s >= cfg.oY) type = 'yuko';
-  if (type) award(o.side, type, note); else addLog(o.side, '解けた' + note);
+  M.osae = null; M.osaeHold = {side: o.side, t: o.t};   // 解けた後も「まて」まで表示を残す
+  osaeAward(o);
+  if (!o.got) addLog(o.side, '解けた（抑込 ' + (o.t/1000).toFixed(1) + '秒）');
   if (!M.result && !M.gs && M.remain <= 0) timeUp();
 }
 
@@ -460,8 +592,8 @@ function tick(){
   if (M.osae) {
     M.osae.t += dt;
     const s = M.osae.t/1000, sc = M.score[M.osae.side];
-    if (s >= cfg.oI) endOsae();
-    else if (cfg.awasete && sc.waza >= 1 && s >= cfg.oW) endOsae();
+    if (!M.gs) osaeAward(M.osae);   // ゴールデンスコア中は最初のスコアで決着するので解けた時に判定
+    if (M.osae && (s >= cfg.oI || (M.gs && cfg.awasete && sc.waza >= 1 && s >= cfg.oW))) endOsae();
   }
   render();
 }
@@ -482,14 +614,22 @@ function render(){
   hj.classList.toggle('mate', M.running);
   hj.disabled = !!M.result || (!M.gs && M.remain <= 0 && !M.running);
 
-  const o = M.osae;
-  setHidden('osaeBox', !o);
-  setHidden('btnToketa', !o);
-  setHidden('btnOsaeW', !!o); setHidden('btnOsaeB', !!o);
-  if (o) {
-    const ob = $('osaeBox'); ob.classList.toggle('w', o.side==='w'); ob.classList.toggle('b', o.side==='b');
-    setText('osaeLbl', name(o.side) + ' 抑込');
-    setText('osaeT', (o.t/1000).toFixed(1));
+  const o = M.osae, hd = !o && M.osaeHold, od = o || hd;
+  const clkTxt = M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain);
+  const rpOpen = !$('rp').hidden;
+  for (const [box, lbl, tt, tk, ow, obb] of [['osaeBox','osaeLbl','osaeT','btnToketa','btnOsaeW','btnOsaeB'], ['rpOsae','rpOsaeLbl','rpOsaeT','rpToketa','rpOsaeW','rpOsaeB']]) {
+    setHidden(box, !od); setHidden(tk, !o); setHidden(ow, !!o); setHidden(obb, !!o);
+    if (od) {
+      const el = $(box); el.classList.toggle('w', od.side==='w'); el.classList.toggle('b', od.side==='b'); el.classList.toggle('held', !!hd);
+      setText(lbl, name(od.side) + (hd ? ' 解けた' : ' 抑込'));
+      setText(tt, (od.t/1000).toFixed(1));
+    }
+  }
+  if (rpOpen) {
+    setText('rpClk', clkTxt);
+    const rc = $('rpClk'); rc.classList.toggle('run', M.running && !M.gs); rc.classList.toggle('gs', M.gs);
+    const rh = $('rpHajime'); setText('rpHajime', M.running ? 'まて' : 'はじめ'); rh.classList.toggle('mate', M.running);
+    rh.disabled = hj.disabled;
   }
 
   for (const s of ['w','b']) {
@@ -523,7 +663,15 @@ function render(){
 function fmtRec(s){ s = Math.floor(s); return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
 function fmtPos(s){ if (!isFinite(s)) s = 0; const m = Math.floor(s/60); return m + ':' + (s - m*60).toFixed(1).padStart(4,'0'); }
 
+// 横持ちの標準配置：青白は「白が左」、赤白は「赤が左」。設定の入れ替えはそこから反転する
+const swapHint = color => color === 'red'
+  ? 'オフ：赤が左　オン：赤が右（カメラから見た選手の位置に合わせます）'
+  : 'オフ：白が左　オン：白が右（カメラから見た選手の位置に合わせます）';
 function applyRuleVisibility(){
+  document.body.classList.toggle('swap', (cfg.color === 'red') !== !!cfg.swap);
+  $('sSwapHint').textContent = swapHint(cfg.color);
+  document.body.classList.toggle('red', cfg.color === 'red');
+  document.querySelectorAll('.cn').forEach(el => el.textContent = CN());
   document.querySelectorAll('.yk').forEach(el => el.hidden = !cfg.yuko);
   document.querySelectorAll('.sbtns').forEach(el => el.classList.toggle('noyuko', !cfg.yuko));
   for (const k in memo) delete memo[k];
@@ -617,6 +765,13 @@ function sizeCanvas(w, h){
   if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
 }
 
+// リプレイ中も右下にライブ映像（スコア表示込み）を小さく映す
+const pipCv = $('pipCv'), pg = pipCv.getContext('2d');
+function drawPip(){
+  const w = 320, h = Math.round(w * cv.height / cv.width) || 180;
+  if (pipCv.width !== w || pipCv.height !== h) { pipCv.width = w; pipCv.height = h; }
+  pg.drawImage(cv, 0, 0, w, h);
+}
 function draw(){
   if (R.src === 'cam' && camVideo.readyState >= 2 && camVideo.videoWidth) {
     sizeCanvas(camVideo.videoWidth, camVideo.videoHeight);
@@ -627,6 +782,7 @@ function draw(){
     g.fillStyle = '#05080f'; g.fillRect(0, 0, cv.width, cv.height);
   }
   if (R.src && cfg.overlay) drawOverlay();
+  if (!$('rp').hidden) drawPip();
   requestAnimationFrame(draw);
 }
 requestAnimationFrame(draw);
@@ -642,65 +798,111 @@ function drawDemo(){
   const a = t*1.7;
   const fig = (x, y, col) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, H*.09, 0, 7); g.fill(); g.beginPath(); g.arc(x, y - H*.13, H*.045, 0, 7); g.fill(); };
   fig(cx + Math.cos(a)*H*.1, cy + Math.sin(a)*H*.05, '#f6f6f6');
-  fig(cx - Math.cos(a)*H*.1, cy - Math.sin(a)*H*.05, '#1746c9');
+  fig(cx - Math.cos(a)*H*.1, cy - Math.sin(a)*H*.05, bRGBA(1));
   g.fillStyle = 'rgba(0,0,0,.6)'; g.font = '700 ' + Math.round(H*.035) + 'px system-ui,sans-serif';
   g.fillText('DEMO  ' + t.toFixed(1) + 's', W*.02, H*.06);
 }
 
 function rr(x, y, w, h, r){ g.beginPath(); g.moveTo(x+r, y); g.arcTo(x+w, y, x+w, y+h, r); g.arcTo(x+w, y+h, x, y+h, r); g.arcTo(x, y+h, x, y, r); g.arcTo(x, y, x+w, y, r); g.closePath(); }
 
+// 映像に焼き込むスコアボード： [左の選手 名前 技 有 指] [時間] [右の選手 名前 技 有 指]
+// 抑込時間は時間の真上に大きく表示。左右は画面の配置（スコアの左右入れ替え）と同じ。
 function drawOverlay(){
   const W = cv.width, H = cv.height;
-  const u = Math.round(Math.min(W, H) / 13);         // row height
-  const pad = Math.round(u*.35), fs = Math.round(u*.58);
-  const nameW = u*3.4, cell = u*1.05, shW = u*1.3;
-  const rowW = nameW + cell*(cfg.yuko ? 2 : 1) + shW;
-  const x0 = pad, y0 = H - pad - u*2;
+  const F = 'system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif';
+  const yk = cfg.yuko;
+  const nameW = 2.8, cellW = 1.3, shW = 1.75, clockW = 3.1, padIn = .25;   // in units of u
+  const sideW = padIn*2 + nameW + cellW*(yk ? 2 : 1) + shW;
+  const total = sideW*2 + clockW;
+  const pad = Math.min(W, H) * .027;
+  let u = Math.min(W, H) / 13;
+  u = Math.min(u, (W - pad*2) / total);              // 縦長の映像でも横幅に収める
+  const bh = u*1.3;
+  const x0 = (W - total*u)/2, y0 = H - pad - bh;
+  const cx0 = x0 + sideW*u;                           // clock box left edge
+  const left = document.body.classList.contains('swap') ? 'b' : 'w';
   g.textBaseline = 'middle';
-  ['w','b'].forEach((s, i) => {
-    const y = y0 + i*u, sc = M.score[s];
-    g.fillStyle = s === 'w' ? 'rgba(244,246,249,.93)' : 'rgba(23,70,201,.93)';
-    g.fillRect(x0, y, rowW, u);
+
+  [left, OTHER[left]].forEach((s, i) => {
+    const sc = M.score[s];
+    const bx = i === 0 ? x0 : cx0 + clockW*u;
     const ink = s === 'w' ? '#121826' : '#ffffff';
-    g.fillStyle = ink; g.font = '800 ' + fs + 'px system-ui,-apple-system,"Hiragino Sans",sans-serif';
-    let nm = name(s); while (g.measureText(nm).width > nameW - u*.4 && nm.length > 1) nm = nm.slice(0, -1);
-    g.textAlign = 'left'; g.fillText(nm, x0 + u*.2, y + u/2);
-    g.textAlign = 'center'; g.font = '900 ' + Math.round(u*.7) + 'px system-ui,sans-serif';
-    const ipp = sc.ippon || (cfg.awasete && sc.waza >= 2);
-    let x = x0 + nameW;
-    if (ipp) { g.fillStyle = '#2fbf71'; g.fillRect(x, y + u*.1, cell*(cfg.yuko?2:1) - u*.1, u*.8); g.fillStyle = '#03140b'; g.font = '900 ' + Math.round(u*.5) + 'px system-ui,sans-serif'; g.fillText('IPPON', x + (cell*(cfg.yuko?2:1))/2, y + u/2); }
-    else {
-      g.fillStyle = ink; g.fillText(String(sc.waza), x + cell/2, y + u/2);
-      if (cfg.yuko) { g.globalAlpha = .75; g.fillText(String(sc.yuko), x + cell*1.5, y + u/2); g.globalAlpha = 1; }
+    const cy = y0 + bh/2;
+    g.fillStyle = s === 'w' ? 'rgba(244,246,249,.94)' : bRGBA(.94);
+    g.fillRect(bx, y0, sideW*u, bh);
+    if (M.result && M.result.winner === s) {
+      g.strokeStyle = '#2fbf71'; g.lineWidth = u*.12;
+      g.strokeRect(bx + u*.06, y0 + u*.06, sideW*u - u*.12, bh - u*.12);
     }
-    x = x0 + nameW + cell*(cfg.yuko ? 2 : 1);
-    const cw = u*.32, ch = u*.5;
-    const hs = sc.hansoku || sc.shido >= 3;
-    for (let k = 0; k < Math.min(sc.shido, 2); k++) { g.fillStyle = '#ffd21f'; g.fillRect(x + u*.12 + k*(cw + u*.08), y + (u - ch)/2, cw, ch); }
-    if (hs) { g.fillStyle = '#e5383b'; g.fillRect(x + u*.12 + Math.min(sc.shido,2)*(cw + u*.08), y + (u - ch)/2, cw, ch); }
+    let x = bx + padIn*u;
+    // 名前
+    g.fillStyle = ink; g.textAlign = 'left'; g.font = '800 ' + Math.round(u*.55) + 'px ' + F;
+    let nm = name(s); while (g.measureText(nm).width > nameW*u - u*.2 && nm.length > 1) nm = nm.slice(0, -1);
+    g.fillText(nm, x, cy);
+    x += nameW*u;
+    // 一文字ラベル＋数字
+    const label = lab => {
+      g.textAlign = 'left'; g.fillStyle = ink; g.globalAlpha = .72;
+      g.font = '800 ' + Math.round(u*.4) + 'px ' + F; g.fillText(lab, x, cy + u*.06);
+      g.globalAlpha = 1; return g.measureText(lab).width + u*.08;
+    };
+    const cell = (lab, val) => {
+      const lw = label(lab);
+      g.font = '900 ' + Math.round(u*.82) + 'px ' + F; g.fillText(String(val), x + lw, cy);
+      x += cellW*u;
+    };
+    if (sc.ippon || (cfg.awasete && sc.waza >= 2)) {
+      const w = cellW*(yk ? 2 : 1)*u - u*.2;
+      g.fillStyle = '#2fbf71'; rr(x, y0 + u*.2, w, bh - u*.4, u*.12); g.fill();
+      g.fillStyle = '#03140b'; g.textAlign = 'center'; g.font = '900 ' + Math.round(u*.6) + 'px ' + F;
+      g.fillText('一本', x + w/2, cy);
+      x += cellW*(yk ? 2 : 1)*u;
+    } else {
+      cell('技', sc.waza);
+      if (yk) cell('有', sc.yuko);
+    }
+    // 指導：カード表示（0 のときは数字）
+    const lw = label('指');
+    let kx = x + lw;
+    const cw = u*.32, ch = u*.56;
+    const n = Math.min(sc.shido, 2), hs = sc.hansoku || sc.shido >= 3;
+    if (!n && !hs) { g.fillStyle = ink; g.font = '900 ' + Math.round(u*.82) + 'px ' + F; g.fillText('0', kx, cy); }
+    g.lineWidth = Math.max(1, u*.03); g.strokeStyle = 'rgba(0,0,0,.4)';
+    for (let j = 0; j < n; j++) { g.fillStyle = '#ffd21f'; g.fillRect(kx, cy - ch/2, cw, ch); g.strokeRect(kx, cy - ch/2, cw, ch); kx += cw + u*.08; }
+    if (hs) { g.fillStyle = '#e5383b'; g.fillRect(kx, cy - ch/2, cw, ch); g.strokeRect(kx, cy - ch/2, cw, ch); }
   });
-  // clock
-  const cx = x0 + rowW, cwid = u*2.9;
-  g.fillStyle = 'rgba(8,12,22,.9)'; g.fillRect(cx, y0, cwid, u*2);
+
+  // 時間（真ん中）
+  g.fillStyle = 'rgba(8,12,22,.93)'; g.fillRect(cx0, y0, clockW*u, bh);
   g.textAlign = 'center';
   g.fillStyle = M.gs ? '#ff7a1a' : (M.running ? '#ffffff' : '#ffb21f');
-  g.font = '800 ' + Math.round(u*.95) + 'px system-ui,sans-serif';
-  g.fillText(M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain), cx + cwid/2, y0 + u*.82);
-  g.font = '700 ' + Math.round(u*.36) + 'px system-ui,sans-serif'; g.fillStyle = '#8e9bb5';
-  g.fillText(M.gs ? 'GOLDEN SCORE' : (M.running ? '' : 'MATE'), cx + cwid/2, y0 + u*1.6);
-  // osaekomi
-  if (M.osae) {
-    const ow = u*3.6, oy = y0 - u*.9 - pad*.5;
-    g.fillStyle = M.osae.side === 'w' ? 'rgba(244,246,249,.95)' : 'rgba(23,70,201,.95)';
-    rr(x0, oy, ow, u*.9, u*.15); g.fill();
-    g.fillStyle = M.osae.side === 'w' ? '#121826' : '#fff';
-    g.font = '800 ' + Math.round(u*.5) + 'px system-ui,"Hiragino Sans",sans-serif';
-    g.fillText('抑込 ' + (M.osae.t/1000).toFixed(1), x0 + ow/2, oy + u*.45);
+  g.font = '800 ' + Math.round(u*.92) + 'px ' + F;
+  g.fillText(M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain), cx0 + clockW*u/2, y0 + bh*.43);
+  g.font = '700 ' + Math.round(u*.27) + 'px ' + F; g.fillStyle = '#8e9bb5';
+  g.fillText(M.gs ? 'GOLDEN SCORE' : (M.running ? '' : 'MATE'), cx0 + clockW*u/2, y0 + bh*.85);
+
+  // 抑込（時間の真上に大きく）
+  const od = M.osae || M.osaeHold;
+  if (od) {
+    const ow = u*5.4, oh = u*1.35, ox = cx0 + clockW*u/2 - ow/2, oy = y0 - oh - u*.18;
+    g.globalAlpha = M.osae ? 1 : .88;
+    g.fillStyle = od.side === 'w' ? 'rgba(244,246,249,.97)' : bRGBA(.97);
+    rr(ox, oy, ow, oh, u*.22); g.fill();
+    g.strokeStyle = '#ffb21f'; g.lineWidth = u*.07;
+    if (!M.osae) g.setLineDash([u*.18, u*.12]);
+    rr(ox, oy, ow, oh, u*.22); g.stroke(); g.setLineDash([]);
+    g.fillStyle = od.side === 'w' ? '#121826' : '#ffffff';
+    g.textAlign = 'left'; g.font = '800 ' + Math.round(u*.46) + 'px ' + F;
+    g.fillText(M.osae ? '抑込' : '解けた', ox + u*.28, oy + oh/2);
+    g.textAlign = 'right'; g.font = '900 ' + Math.round(u*1.0) + 'px ' + F;
+    g.fillText((od.t/1000).toFixed(1), ox + ow - u*.28, oy + oh/2 + u*.03);
+    g.globalAlpha = 1;
   }
-  // result
+
+  // 結果
   if (M.result) {
     const txt = M.result.winner ? 'それまで  ' + name(M.result.winner) + ' ' + M.result.reason : 'それまで  ' + M.result.reason;
-    g.font = '800 ' + Math.round(u*.6) + 'px system-ui,"Hiragino Sans",sans-serif';
+    g.font = '800 ' + Math.round(u*.6) + 'px ' + F; g.textAlign = 'center';
     const tw = g.measureText(txt).width + u;
     g.fillStyle = 'rgba(47,191,113,.95)'; rr((W - tw)/2, pad, tw, u*1.1, u*.2); g.fill();
     g.fillStyle = '#03140b'; g.fillText(txt, W/2, pad + u*.55);
@@ -827,6 +1029,7 @@ $('rpF2').onclick = () => rpSeekBy(2);
 $('rpBF').onclick = () => { rv.pause(); rpSeekBy(-1/30); };
 $('rpFF').onclick = () => { rv.pause(); rpSeekBy(1/30); };
 $('rpClose').onclick = closeReplay;
+$('rpPip').onclick = closeReplay;
 function setRate(r){
   rpRate = r; rv.playbackRate = r;
   document.querySelectorAll('#rpRate button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.r === r)));
@@ -840,7 +1043,7 @@ async function saveVideo(){
   const snap = await snapshot();
   if (!snap) { toast('保存する映像がありません'); return; }
   const ext = R.mime.includes('mp4') ? 'mp4' : 'webm';
-  const fn = '柔道_' + (cfg.nameW||'白') + '対' + (cfg.nameB||'青') + '_' + stamp() + '.' + ext;
+  const fn = '柔道_' + name('w') + '対' + name('b') + '_' + stamp() + '.' + ext;
   const file = new File([snap.blob], fn, {type: R.mime.split(';')[0]});
   if (navigator.canShare && navigator.canShare({files:[file]})) {
     try { await navigator.share({files:[file], title:fn}); return; }
@@ -872,7 +1075,7 @@ function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false
 function summaryText(){
   const L = [];
   L.push('柔道 試合記録 ' + new Date().toLocaleString('ja-JP'));
-  L.push('白: ' + name('w') + ' / 青: ' + name('b'));
+  L.push('白: ' + name('w') + ' / ' + CN() + ': ' + name('b'));
   if (M.result) L.push('結果: ' + (M.result.winner ? name(M.result.winner) + 'の勝ち（' + M.result.reason + '）' : M.result.reason));
   for (const s of ['w','b']) { const c = M.score[s]; L.push(name(s) + ': 一本' + c.ippon + ' 技あり' + c.waza + (cfg.yuko ? ' 有効' + c.yuko : '') + ' 指導' + c.shido + (c.hansoku ? ' 反則負け' : '')); }
   L.push('---');
@@ -899,21 +1102,29 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 
 /* ---------- settings sheet ---------- */
 function openSettings(){
-  $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur);
+  $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
   $('sOv').checked = cfg.overlay; $('sAu').checked = cfg.audio; $('sQ').value = String(cfg.q); $('sBz').checked = cfg.buzzer;
   $('st').hidden = false;
 }
+$('sColor').addEventListener('change', e => {
+  const c = e.target.value === 'red' ? '赤' : '青';
+  $('st').querySelectorAll('.cn').forEach(el => el.textContent = c);
+  $('sSwapHint').textContent = swapHint(e.target.value);
+  const nb = $('sNameB'); if (nb.value === '青' || nb.value === '赤' || !nb.value) nb.value = c;
+});
 $('stForm').addEventListener('submit', e => {
   e.preventDefault();
   const num = (id, d) => { const n = parseInt($(id).value, 10); return n > 0 ? n : d; };
   const qBefore = cfg.q;
-  Object.assign(cfg, {nameW: $('sNameW').value.trim() || '白', nameB: $('sNameB').value.trim() || '青', dur: +$('sDur').value,
+  const color = $('sColor').value, nb = $('sNameB').value.trim();
+  Object.assign(cfg, {nameW: $('sNameW').value.trim() || '白', color,
+    nameB: (nb && nb !== '青' && nb !== '赤') ? nb : (color === 'red' ? '赤' : '青'), dur: +$('sDur').value,
     gs: $('sGs').checked, yuko: $('sYuko').checked, awasete: $('sAwa').checked,
     oI: num('sOI', 20), oW: num('sOW', 10), oY: num('sOY', 5),
-    overlay: $('sOv').checked, audio: $('sAu').checked, q: +$('sQ').value, buzzer: $('sBz').checked});
-  saveCfg(); applyRuleVisibility(); renderLog();
+    overlay: $('sOv').checked, audio: $('sAu').checked, q: +$('sQ').value, buzzer: $('sBz').checked, swap: $('sSwap').checked});
+  saveCfg(); setReplaySec(+$('sRp').value || 10); applyRuleVisibility(); renderLog();
   if (!M.running && !M.result && M.remain === M.dur && !M.gs) { M.dur = M.remain = cfg.dur*1000; }
   $('st').hidden = true;
   if (qBefore !== cfg.q && R.src === 'cam') toast('画質はカメラの再起動（ページ再読み込み）後に反映されます');
@@ -930,6 +1141,10 @@ $('btnHajime').onclick = toggleClock;
 $('btnOsaeW').onclick = () => startOsae('w');
 $('btnOsaeB').onclick = () => startOsae('b');
 $('btnToketa').onclick = endOsae;
+$('rpHajime').onclick = toggleClock;
+$('rpOsaeW').onclick = () => startOsae('w');
+$('rpOsaeB').onclick = () => startOsae('b');
+$('rpToketa').onclick = endOsae;
 $('btnReplay').onclick = () => openReplay({back: cfg.replay});
 $('btnMark').onclick = () => { addLog('x', '印'); toast('この時点に印を付けました'); };
 $('btnUndo').onclick = undo;
@@ -958,12 +1173,30 @@ document.querySelectorAll('.side').forEach(sec => sec.addEventListener('click', 
   unlockAudio(); award(sec.dataset.side, b.dataset.a);
 }));
 function setReplaySec(s){
-  cfg.replay = s; saveCfg(); $('rpSecLbl').textContent = s;
+  cfg.replay = s; saveCfg(); $('rpSecLbl').textContent = s; $('rpSecLbl2').textContent = s;
   document.querySelectorAll('#rpSeg button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.s === s)));
 }
 document.querySelectorAll('#rpSeg button').forEach(b => b.onclick = () => setReplaySec(+b.dataset.s));
 setReplaySec(cfg.replay);
 window.addEventListener('beforeunload', e => { if (recNow() != null || R.chunks.length) { e.preventDefault(); e.returnValue = ''; } });
+
+// 全画面：ブラウザのアドレスバー等を消してカメラを広く使う（Android Chrome など。iPhone は「ホーム画面に追加」で同等）
+(() => {
+  const de = document.documentElement, b = $('btnFull');
+  const installed = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone;
+  if (!de.requestFullscreen || installed) return;
+  b.hidden = false;
+  b.onclick = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else {
+        await de.requestFullscreen({navigationUI:'hide'});
+        try { await screen.orientation.lock('landscape'); } catch (e) {}
+      }
+    } catch (e) { toast('この端末では全画面にできません'); }
+  };
+  document.addEventListener('fullscreenchange', () => { b.textContent = document.fullscreenElement ? '全画面解除' : '全画面'; });
+})();
 
 applyRuleVisibility();
 renderLog();

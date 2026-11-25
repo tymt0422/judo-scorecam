@@ -1,5 +1,7 @@
-// オフラインでも起動できるようにアプリ本体をキャッシュする（ネット優先・失敗時キャッシュ）
-const CACHE = 'judo-scorecam-v1';
+// オフラインでも起動できるようにアプリ本体をキャッシュする。
+// キャッシュ優先で即起動し、裏でネットから最新版を取得して次回起動時に反映する
+// （体育館などで電波が弱くても待たされない）。
+const CACHE = 'judo-scorecam-v3';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -12,11 +14,11 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
-  e.respondWith(
-    fetch(e.request).then(r => {
-      const copy = r.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy));
-      return r;
-    }).catch(() => caches.match(e.request, {ignoreSearch: true}).then(r => r || caches.match('./index.html')))
-  );
+  e.respondWith(caches.open(CACHE).then(async c => {
+    const cached = await c.match(e.request, {ignoreSearch: true}) ||
+      (e.request.mode === 'navigate' ? await c.match('./index.html') : undefined);
+    const fresh = fetch(e.request).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; });
+    if (cached) { e.waitUntil(fresh.catch(() => {})); return cached; }
+    return fresh;
+  }));
 });
