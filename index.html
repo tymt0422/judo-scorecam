@@ -211,6 +211,7 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .tm .tmrow input{width:4.2em;font-size:30px;text-align:center;font-variant-numeric:tabular-nums;padding:8px}
 .st .flipb{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-weight:700;white-space:nowrap}
 .st .flipb:disabled{opacity:.4}
+.st .svdl{display:block;text-align:center;color:var(--fg);text-decoration:none}
 .st .cancel{margin-top:8px;background:var(--panel2);border-radius:10px;padding:12px;font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);
   padding:10px 16px;border-radius:999px;font-weight:700;z-index:40;max-width:90vw;text-align:center}
@@ -225,7 +226,8 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
      見えている高さ（100dvh）のアプリを画面の下端にそろえる */
   body{display:flex;flex-direction:column}
   .app{flex:none;width:100%}
-  html.inbrowser .app{margin-top:auto}
+  /* Safari は横持ちでアドレスバーがページの上に重なるため、アプリを画面の下端に固定する */
+  html.inbrowser .app{position:fixed;left:0;right:0;bottom:0;margin:0}
   .app{display:grid;height:100%;height:100dvh;min-height:0;gap:6px;
     grid-template-columns:minmax(112px,15%) minmax(0,1fr) minmax(112px,15%);
     grid-template-rows:minmax(0,1fr) auto;
@@ -454,6 +456,18 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
     </div>
     <button type="submit" class="done">この時間にする</button>
     <button type="button" class="cancel" id="tmCancel">やめる</button>
+  </form>
+</div>
+
+<!-- save: 映像の準備が終わってから、もう一度タップで共有メニューを開く（iPhone はタップ直後でないと共有メニューを開けない） -->
+<div class="sheet st tm" id="sv" hidden>
+  <form id="svForm" onsubmit="return false">
+    <h2>動画を保存</h2>
+    <p class="note" id="svInfo"></p>
+    <button type="button" class="done" id="svShare">写真・ファイルに保存</button>
+    <a class="cancel svdl" id="svDl" href="#" download>ダウンロードで保存</a>
+    <button type="button" class="cancel" id="svClose">閉じる</button>
+    <p class="note">「写真・ファイルに保存」で開くメニューから、iPhone は「ビデオを保存」で写真アプリに、「"ファイル"に保存」でファイルアプリに保存できます。</p>
   </form>
 </div>
 
@@ -1053,22 +1067,31 @@ setRate(1);
 
 /* ---------- save ---------- */
 function stamp(){ const d = new Date(), p = n => String(n).padStart(2,'0'); return d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()); }
+// 保存は2段階：①映像をまとめる（時間がかかる）→ ②「写真・ファイルに保存」のタップで共有メニューを開く。
+// iPhone はタップから時間がたつと共有メニューを開かせてくれないため、1回のタップでは保存できないことがある。
+let svFile = null, svURL = null;
 async function saveVideo(){
   const snap = await snapshot();
   if (!snap) { toast('保存する映像がありません'); return; }
-  const ext = R.mime.includes('mp4') ? 'mp4' : 'webm';
+  const type = (R.mime || snap.blob.type || 'video/mp4').split(';')[0];
+  const ext = type.includes('mp4') ? 'mp4' : 'webm';
   const fn = '柔道_' + name('w') + '対' + name('b') + '_' + stamp() + '.' + ext;
-  const file = new File([snap.blob], fn, {type: R.mime.split(';')[0]});
-  if (navigator.canShare && navigator.canShare({files:[file]})) {
-    try { await navigator.share({files:[file], title:fn}); return; }
-    catch (e) { if (e.name === 'AbortError') return; }
-  }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(file); a.download = fn;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-  toast('動画をダウンロードしました');
+  svFile = new File([snap.blob], fn, {type});
+  if (svURL) URL.revokeObjectURL(svURL);
+  svURL = URL.createObjectURL(svFile);
+  const dl = $('svDl'); dl.href = svURL; dl.download = fn;
+  const canShare = !!(navigator.canShare && navigator.canShare({files:[svFile]}));
+  $('svShare').hidden = !canShare;
+  $('svInfo').textContent = fn + '（' + (svFile.size/1048576).toFixed(1) + 'MB）' + (recNow() != null ? '　※録画中のため、今までの分を保存します' : '');
+  $('sv').hidden = false;
 }
+$('svShare').onclick = async () => {
+  if (!svFile) return;
+  try { await navigator.share({files:[svFile], title:svFile.name}); $('sv').hidden = true; }
+  catch (e) { if (e.name !== 'AbortError') toast('共有メニューを開けませんでした（' + e.name + '）。「ダウンロードで保存」を試してください'); }
+};
+$('svDl').addEventListener('click', () => setTimeout(() => toast('ダウンロードしました。ファイルアプリの「ダウンロード」を確認してください'), 300));
+$('svClose').onclick = () => { $('sv').hidden = true; };
 
 /* ---------- misc ---------- */
 let ac = null;
