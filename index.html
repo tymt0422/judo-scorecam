@@ -61,6 +61,12 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .stage{position:relative;background:#000;border-radius:var(--r);overflow:hidden;aspect-ratio:16/9;width:100%;max-height:40vh;
   display:flex;align-items:center;justify-content:center}
 .stage canvas{width:100%;height:100%;object-fit:contain;display:block}
+/* カメラ表示中に「カメラなし表示」へ切り替えたときのスコアボード（下のカメラ映像と録画はそのまま続く） */
+.stage #bv{position:absolute;inset:0}
+#btnBoard{background:#2d3f63}
+/* 次の試合は目立つ色に */
+.tools #btnNew{background:#0d9488;color:#fff}
+.tools #btnNew.armed{background:var(--red)}
 .stage video.src{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   background:radial-gradient(circle at 50% 40%,#1b2a4a,#070b14);text-align:center;padding:12px}
@@ -103,8 +109,14 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .ctl{grid-template-columns:1fr 1.9fr 1fr}
 .ctl .hajime{font-size:30px;padding:16px 6px}
 /* 抑え込み中も「待て」は大きいまま：[　　待て　　][解けた] */
-.ctl:has(#btnToketa:not([hidden])){grid-template-columns:1.5fr 1fr!important}
-.ctl #btnToketa{grid-column:auto}
+/* 抑え込み中は [そのまま（小）][解けた（大・真ん中）][待て（最小）] */
+.ctl:has(#btnToketa:not([hidden])){grid-template-columns:1fr 2.4fr .8fr!important}
+.ctl #btnToketa{grid-column:auto;order:2;font-size:26px}
+.ctl #btnSono{order:1}
+.ctl:has(#btnToketa:not([hidden])) #btnHajime{order:3;font-size:16px!important;letter-spacing:0}
+.sono{background:var(--panel2);color:var(--clock);border:2px solid var(--clock);border-radius:var(--r);font-weight:900;font-size:15px;padding:4px 2px;line-height:1.15}
+.sono.on{background:var(--ok);color:#03140b;border-color:var(--ok)}
+#rpSono{order:5;padding:6px 12px;border-radius:10px}
 #btnOsaeW,#rpOsaeW{order:1} #btnHajime,#rpHajime{order:2} #btnOsaeB,#rpOsaeB{order:3} #btnToketa,#rpToketa{order:4}
 body.swap #btnOsaeW,body.swap #rpOsaeW{order:3}
 body.swap #btnOsaeB,body.swap #rpOsaeB{order:1}
@@ -223,6 +235,19 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);
   padding:10px 16px;border-radius:999px;font-weight:700;z-index:40;max-width:90vw;text-align:center}
 
+body.nocam #btnRec,body.nocam #btnSave{display:none}   /* カメラなしでは録画・保存は使わない */
+/* iPad などへの表示 */
+.lkbadge{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#9fe8bf;border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;z-index:2;pointer-events:none}
+.st .lkcode{font-size:30px;font-weight:900;letter-spacing:.12em;color:var(--clock);font-variant-numeric:tabular-nums}
+.st .lkcode.off{color:var(--muted);opacity:.5}
+.st .lkbtn{margin-top:8px}
+.vwexit{display:none}
+body.viewer .app > *:not(.stage){display:none!important}
+body.viewer .stage{position:fixed;inset:0;width:auto;height:auto;max-height:none;aspect-ratio:auto;border-radius:0;z-index:1}
+body.viewer .stage > :not(canvas):not(video):not(.vwexit){display:none!important}
+body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:max(10px,env(safe-area-inset-top,0px));
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.45);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;z-index:3}
+#vwCode{font-size:34px;letter-spacing:.15em;text-align:center;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:8px}
 .ctrlzone{display:flex;flex-direction:column;gap:8px;min-width:0}
 
 /* landscape: 白 left | camera (max size) + one-row match controls | 青 right (swappable).
@@ -252,6 +277,9 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
     padding:6px 9px;font-size:12px;border-radius:8px;color:#fff}
   .top .rec.on{background:var(--red)}
   .tools button.armed{background:var(--red)}
+  .tools #btnNew{background:rgba(13,148,136,.92);color:#fff}
+  .tools #btnNew.armed{background:var(--red)}
+  .top #btnBoard{background:rgba(45,63,99,.85)}
   .log{display:none}
   .stage{grid-area:stage;max-height:none;height:100%;aspect-ratio:auto;min-height:0;border-radius:10px}
   .recbadge{top:auto;left:auto;bottom:8px;right:8px}
@@ -309,18 +337,24 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
     <div class="brand">柔道スコアカム</div>
     <button class="ib rec" id="btnRec" disabled><i></i><span id="recLbl">録画</span></button>
     <button class="ib" id="btnSave" disabled>保存</button>
+    <button class="ib" id="btnBoard" hidden>カメラなし表示</button>
     <button class="ib" id="btnSettings" aria-label="設定">設定</button>
     <button class="ib" id="btnFull" hidden>全画面</button>
   </header>
 
   <div class="stage" id="stage">
     <canvas id="cv" width="1280" height="720"></canvas>
+    <canvas id="bv" hidden></canvas>
     <video class="src" id="camVideo" playsinline muted autoplay></video>
+    <div class="lkbadge" id="lkBadge" hidden></div>
+    <button class="vwexit" id="vwExit" aria-label="表示専用を終了">終了</button>
     <div class="recbadge" id="recBadge" hidden><i></i><span id="recTime">00:00</span></div>
     <div class="start" id="startBox">
       <div class="row">
         <button class="pbtn" id="btnCam">カメラを起動</button>
+        <button class="gbtn" id="btnNoCam">カメラなしで起動</button>
         <button class="gbtn" id="btnDemo">デモ映像で試す</button>
+        <button class="gbtn" id="btnView">表示専用で起動（iPad）</button>
       </div>
       <p id="startMsg">撮影しながら試合時間とスコアを記録し、数秒前の映像をすぐに見返せます。</p>
     </div>
@@ -339,6 +373,7 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
       <button class="ob w" id="btnOsaeW"><small>白</small>抑え込み</button>
       <button class="ob b" id="btnOsaeB"><small class="cn">青</small>抑え込み</button>
       <button class="toketa" id="btnToketa" hidden>解けた</button>
+      <button class="sono" id="btnSono" hidden>そのまま</button>
     </div>
 
     <div class="rpl">
@@ -401,6 +436,7 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
       <button class="ob w" id="rpOsaeW"><small>白</small>抑え込み</button>
       <button class="ob b" id="rpOsaeB"><small class="cn">青</small>抑え込み</button>
       <button class="toketa" id="rpToketa" hidden>解けた</button>
+      <button class="sono" id="rpSono" hidden>そのまま</button>
       <button class="close" id="rpClose">閉じる</button>
     </div>
   </div>
@@ -433,6 +469,10 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
       <select id="sColor"><option value="blue">青・白</option><option value="red">赤・白</option></select></div>
     <div class="f"><label for="sNameB"><span class="cn">青</span>の選手名</label><input type="text" id="sNameB" maxlength="16"></div>
     <div class="f"><label for="sSwap">スコアの左右を入れ替える<small id="sSwapHint">オフ：白が左　オン：白が右（カメラから見た選手の位置に合わせます）</small></label><input type="checkbox" id="sSwap"></div>
+    <div class="sec">iPad などにスコアを表示</div>
+    <div class="f lk"><label>番号<small id="lkState">停止中</small></label><b class="lkcode off" id="lkCode">------</b></div>
+    <button type="button" class="done lkbtn" id="lkBtn">送信を開始</button>
+    <p class="note">iPad でもこのアプリを開き、最初の画面の「表示専用で起動（iPad）」を押して上の番号を入力すると、時間・スコア・抑え込み時間が大きく表示されます。両方の端末がインターネットにつながっている必要があります。送る内容（時間・スコア・選手名）は公開の中継サーバーを通るため、番号を知っている人は見ることができます。</p>
     <div class="sec">試合ルール</div>
     <div class="f"><label for="sDur">試合時間</label>
       <select id="sDur"><option value="60">1分</option><option value="90">1分30秒</option><option value="120">2分</option><option value="150">2分30秒</option><option value="180">3分</option><option value="240">4分</option><option value="300">5分</option></select></div>
@@ -480,6 +520,17 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
     <a class="cancel svdl" id="svDl" href="#" download>ダウンロードで保存</a>
     <button type="button" class="cancel" id="svClose">閉じる</button>
     <p class="note">「写真・ファイルに保存」で開くメニューから、iPhone は「ビデオを保存」で写真アプリに、「"ファイル"に保存」でファイルアプリに保存できます。</p>
+  </form>
+</div>
+
+<!-- 表示専用（iPad）：番号の入力 -->
+<div class="sheet st tm" id="vw" hidden>
+  <form onsubmit="return false">
+    <h2>表示専用で起動</h2>
+    <p class="note">撮影している iPhone の「設定」→「iPad などにスコアを表示」で「送信を開始」を押し、表示された6桁の番号を入力してください。</p>
+    <div class="tmrow"><input type="text" id="vwCode" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="6桁の番号" placeholder="000000" style="width:6.5em"></div>
+    <button type="button" class="done" id="vwGo">接続して表示</button>
+    <button type="button" class="cancel" id="vwBack">戻る</button>
   </form>
 </div>
 
@@ -581,7 +632,7 @@ function award(side, type, note, replace){
 
 function finish(winner, reason){
   if (M.osae) M.osaeHold = {side: M.osae.side, t: M.osae.t};
-  M.running = false; M.osae = null;
+  M.running = false; M.osae = null; M.sono = false;
   M.result = {winner, reason};
   addLog(winner || 'x', winner ? 'それまで　' + name(winner) + 'の勝ち（' + reason + '）' : 'それまで　' + reason);
   beep(900, 660);
@@ -599,6 +650,7 @@ function timeUp(){
 function toggleClock(){
   if (M.result) { toast('「次の試合」で新しい試合を始めます'); return; }
   if (M.running) {            // 待て
+    M.sono = false;
     if (M.osae) endOsae();
     M.running = false;        // 抑え込み時間は「待て」の間も表示したまま
   } else {                     // 始め
@@ -613,9 +665,15 @@ function toggleClock(){
 function startOsae(side){
   if (M.result || M.osae) return;
   if (!M.gs && M.remain <= 0) return;
-  M.osae = {side, t:0, got:null}; M.osaeHold = null;
+  M.osae = {side, t:0, got:null}; M.osaeHold = null; M.sono = false;
   M.running = true;
   unlockAudio();
+}
+// そのまま／よし：抑え込み中に試合時計と抑え込み時間を一時停止・再開する
+function toggleSono(){
+  if (!M.osae) return;
+  M.sono = !M.sono;
+  addLog(M.osae.side, (M.sono ? 'そのまま' : 'よし') + '（抑え込み ' + (M.osae.t/1000).toFixed(1) + '秒）');
 }
 // 抑え込みの秒数に届いた時点でスコアを付ける（有効5秒→技あり10秒→一本20秒）。
 // 1回の抑え込みで得るのは1つだけなので、上の段階に届いたら前に付けた分を置き換える。
@@ -635,23 +693,26 @@ function osaeAward(o){
 }
 function endOsae(){
   const o = M.osae; if (!o) return;
+  M.sono = false;
   M.osae = null; M.osaeHold = {side: o.side, t: o.t};   // 解けた後・待ての間も表示を残し、次の「始め」で消す
   osaeAward(o);
   if (!o.got) addLog(o.side, '解けた（抑え込み ' + (o.t/1000).toFixed(1) + '秒）');
   if (!M.result && !M.gs && M.remain <= 0) timeUp();
 }
 
+var VIEW = {on:false};   // 表示専用（iPad など）で起動しているとき true。下の「別の端末に表示」を参照
 let last = performance.now();
 function tick(){
   const now = performance.now(), dt = Math.min(now - last, 500); last = now;
-  if (M.running) {
+  if (VIEW.on) { viewStep(); return; }   // 表示専用：受信した状態を映すだけで、試合の判定はしない
+  if (M.running && !M.sono) {
     if (M.gs) M.gsT += dt;
     else if (M.remain > 0) {
       M.remain -= dt;
       if (M.remain <= 0) { M.remain = 0; if (!M.osae) timeUp(); }
     }
   }
-  if (M.osae) {
+  if (M.osae && !M.sono) {
     M.osae.t += dt;
     const s = M.osae.t/1000, sc = M.score[M.osae.side];
     if (!M.gs) osaeAward(M.osae);   // ゴールデンスコア中は最初のスコアで決着するので解けた時に判定
@@ -668,8 +729,13 @@ function setHidden(id, h){ const k = id + ':h'; if (memo[k] !== h) { memo[k] = h
 
 function render(){
   setText('clk', M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain));
-  setText('clkTag', M.gs ? 'ゴールデンスコア' : (M.running ? '試合中' : (M.remain < M.dur ? '待て' : '本戦 ' + fmtClock(M.dur))));
-  const cb = $('clockBox'); cb.classList.toggle('run', M.running && !M.gs); cb.classList.toggle('gs', M.gs);
+  setText('clkTag', M.sono ? 'そのまま' : M.gs ? 'ゴールデンスコア' : (M.running ? '試合中' : (M.remain < M.dur ? '待て' : '本戦 ' + fmtClock(M.dur))));
+  const cb = $('clockBox'); cb.classList.toggle('run', M.running && !M.sono && !M.gs); cb.classList.toggle('gs', M.gs);
+  for (const id of ['btnSono', 'rpSono']) {
+    setHidden(id, !M.osae);
+    setText(id, M.sono ? 'よし' : 'そのまま');
+    $(id).classList.toggle('on', !!M.sono);
+  }
 
   const hj = $('btnHajime');
   setText('btnHajime', M.running ? '待て' : '始め');
@@ -680,7 +746,9 @@ function render(){
   const clkTxt = M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain);
   const rpOpen = !$('rp').hidden;
   for (const [box, lbl, tt, tk, ow, obb] of [['osaeBox','osaeLbl','osaeT','btnToketa','btnOsaeW','btnOsaeB'], ['rpOsae','rpOsaeLbl','rpOsaeT','rpToketa','rpOsaeW','rpOsaeB']]) {
-    setHidden(box, !od); setHidden(tk, !o); setHidden(ow, !!o); setHidden(obb, !!o);
+    // 通常画面のボタン横には抑え込み時間を出さない（映像・スコアボードの上に大きく出ている）。
+    // リプレイ画面では映像の上に出ないので、抑え込み中だけ表示する。
+    setHidden(box, box === 'osaeBox' || !o); setHidden(tk, !o); setHidden(ow, !!o); setHidden(obb, !!o);
     if (od) {
       const el = $(box); el.classList.toggle('w', od.side==='w'); el.classList.toggle('b', od.side==='b'); el.classList.toggle('held', !!hd);
       setText(lbl, name(od.side) + (hd ? ' 解けた' : ' 抑え込み'));
@@ -689,7 +757,7 @@ function render(){
   }
   if (rpOpen) {
     setText('rpClk', clkTxt);
-    const rc = $('rpClk'); rc.classList.toggle('run', M.running && !M.gs); rc.classList.toggle('gs', M.gs);
+    const rc = $('rpClk'); rc.classList.toggle('run', M.running && !M.sono && !M.gs); rc.classList.toggle('gs', M.gs);
     const rh = $('rpHajime'); setText('rpHajime', M.running ? '待て' : '始め'); rh.classList.toggle('mate', M.running);
     rh.disabled = hj.disabled;
   }
@@ -792,10 +860,32 @@ async function startCamera(){
   camVideo.srcObject = R.cam;
   try { await camVideo.play(); } catch (e) {}
   R.src = 'cam';
+  document.body.classList.remove('nocam');
   $('startBox').hidden = true;
   enableRecUI();
   keepAwake();
+  updateBoardBtn();
 }
+
+// カメラ画面 ⇔ カメラなし（大きなスコアボード）の切り替え
+let boardView = false;
+function updateBoardBtn(){
+  const b = $('btnBoard');
+  b.hidden = !R.src || VIEW.on;
+  b.textContent = (R.src === 'none' || boardView) ? 'カメラ表示' : 'カメラなし表示';
+  $('bv').hidden = !(boardView && R.src && R.src !== 'none');
+}
+$('btnBoard').onclick = async () => {
+  if (R.src === 'none') {          // カメラなしで起動していた → ここでカメラを起動する
+    unlockAudio();
+    await startCamera();
+    if (R.src === 'none') toast($('startMsg').textContent || 'カメラを起動できませんでした');
+    else boardView = false;
+  } else {
+    boardView = !boardView;          // 録画はそのまま続き、画面の表示だけ切り替わる
+  }
+  updateBoardBtn();
+};
 
 async function flipCamera(){
   if (R.src !== 'cam') return;
@@ -812,14 +902,25 @@ function startDemo(){
   R.src = 'demo';
   $('startBox').hidden = true;
   enableRecUI();
+  updateBoardBtn();
   toast('デモ映像です。撮影するときはページを再読み込みして「カメラを起動」を押してください');
+}
+
+// カメラなし：撮影・録画はせず、カメラ画面の場所に大きなスコアボード（時計・スコア・抑え込み）を表示する
+function startNoCam(){
+  R.src = 'none';
+  document.body.classList.add('nocam');
+  $('startBox').hidden = true;
+  keepAwake();
+  updateBoardBtn();
+  toast('カメラなしで起動しました。撮影するときは上の「カメラ表示」を押してください');
 }
 
 function enableRecUI(){ $('btnRec').disabled = false; }
 // 自動録画：各試合の最初の「始め」で録画を始める（抑え込みボタンでは始めない）。「待て」の後の「始め」では何もしない。
 // 試合の途中で手動で止めた場合も、その試合の間は自動では再開しない。
 function autoRecStart(){
-  if (!cfg.autoRec || M.recStarted || !R.src || recNow() != null) return;
+  if (!cfg.autoRec || M.recStarted || !R.src || R.src === 'none' || recNow() != null) return;
   startRec();
 }
 
@@ -845,14 +946,118 @@ function draw(){
     g.drawImage(camVideo, 0, 0, cv.width, cv.height);
   } else if (R.src === 'demo') {
     sizeCanvas(1280, 720); drawDemo();
+  } else if (R.src === 'none') {
+    const r = $('stage').getBoundingClientRect(), k = Math.min(2, window.devicePixelRatio || 1);
+    sizeCanvas(Math.max(320, r.width) * k, Math.max(180, r.height) * k);
+    if (!VIEW.on || VIEW.st) drawBoard();
+    if (VIEW.on) drawViewStatus();
   } else {
     g.fillStyle = '#05080f'; g.fillRect(0, 0, cv.width, cv.height);
   }
-  if (R.src && cfg.overlay) drawOverlay();
+  if (R.src && R.src !== 'none' && cfg.overlay) drawOverlay();
+  if (boardView && R.src && R.src !== 'none') {     // カメラ映像の上にスコアボードを重ねて表示（録画には入らない）
+    const bv = $('bv'), r = $('stage').getBoundingClientRect(), k = Math.min(2, window.devicePixelRatio || 1);
+    const bw = Math.round(Math.max(320, r.width) * k), bh = Math.round(Math.max(180, r.height) * k);
+    if (bv.width !== bw || bv.height !== bh) { bv.width = bw; bv.height = bh; }
+    drawBoard(bv);
+  }
   if (!$('rp').hidden) drawPip();
   requestAnimationFrame(draw);
 }
 requestAnimationFrame(draw);
+
+// カメラなしモードの大きなスコアボード：[左の選手][時計・抑え込み][右の選手]（左右は画面の配置と同じ）
+// C：描く先のキャンバス（省略時は録画用のメイン画面）。カメラ表示中に切り替えたときは、録画を邪魔しないよう別のキャンバスに描く
+function drawBoard(C){
+  C = C || cv;
+  const g = C.getContext('2d');
+  const rr = (x, y, w, h, r) => rrc(g, x, y, w, h, r);
+  const W = C.width, H = C.height, m = Math.min(W, H);
+  const F = 'system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif';
+  const gap = m*.03, yk = cfg.yuko;
+  g.fillStyle = '#05080f'; g.fillRect(0, 0, W, H);
+  g.textBaseline = 'middle';
+  const sideW = W*.25, left = document.body.classList.contains('swap') ? 'b' : 'w';
+  // 横持ちでは上に設定・取消などのボタンが重なるので、その分だけ下げて描く
+  const land = matchMedia('(orientation:landscape) and (min-width:640px)').matches;
+  const T = land && !VIEW.on ? 44 * C.height / Math.max(1, $('stage').clientHeight) : 0, HH = H - T;
+
+  [left, OTHER[left]].forEach((s, i) => {
+    const sc = M.score[s];
+    const x = i === 0 ? gap : W - sideW, w = sideW - gap, y = T + gap, h = HH - gap*2;
+    const ink = s === 'w' ? '#121826' : '#ffffff';
+    g.fillStyle = s === 'w' ? '#f4f6f9' : bRGBA(1);
+    rr(x, y, w, h, m*.04); g.fill();
+    if (M.result && M.result.winner === s) { g.strokeStyle = '#2fbf71'; g.lineWidth = m*.025; rr(x, y, w, h, m*.04); g.stroke(); }
+    // 名前
+    g.fillStyle = ink; g.textAlign = 'center';
+    let fs = Math.min(h*.13, w*.24); g.font = '900 ' + Math.round(fs) + 'px ' + F;
+    let nm = name(s); while (g.measureText(nm).width > w*.9 && nm.length > 1) nm = nm.slice(0, -1);
+    g.fillText(nm, x + w/2, y + h*.12);
+    // 技・有・指の行
+    const rows = (yk ? 2 : 1) + 1, top = y + h*.25, rh = (h*.95 - h*.25) / rows;
+    const lx = x + w*.1, vx = x + w*.9;
+    const lab = (t, ry) => { g.textAlign = 'left'; g.fillStyle = ink; g.globalAlpha = .85; g.font = '900 ' + Math.round(Math.min(rh*.48, w*.2)) + 'px ' + F; g.fillText(t, lx, ry); g.globalAlpha = 1; };
+    const val = (v, ry) => { g.textAlign = 'right'; g.fillStyle = ink; g.font = '900 ' + Math.round(Math.min(rh*.85, w*.36)) + 'px ' + F; g.fillText(String(v), vx, ry + rh*.03); };
+    let r = 0;
+    if (sc.ippon || (cfg.awasete && sc.waza >= 2)) {
+      const bh = rh*(yk ? 2 : 1) - rh*.2, by = top + rh*.1;
+      g.fillStyle = '#2fbf71'; rr(lx, by, vx - lx, bh, m*.025); g.fill();
+      g.fillStyle = '#03140b'; g.textAlign = 'center'; g.font = '900 ' + Math.round(Math.min(bh*.5, (vx - lx)*.3)) + 'px ' + F;
+      g.fillText('一本', (lx + vx)/2, by + bh/2);
+      r = yk ? 2 : 1;
+    } else {
+      lab('技', top + rh*(r + .5)); val(sc.waza, top + rh*(r + .5)); r++;
+      if (yk) { lab('有', top + rh*(r + .5)); val(sc.yuko, top + rh*(r + .5)); r++; }
+    }
+    const ry = top + rh*(r + .5);
+    lab('指', ry);
+    const n = Math.min(sc.shido, 2), hs = sc.hansoku || sc.shido >= 3;
+    if (!n && !hs) val(0, ry);
+    else {
+      const ch = Math.min(rh*.7, w*.3), cw = ch*.62; let kx = vx - cw;
+      g.lineWidth = Math.max(1, m*.004); g.strokeStyle = 'rgba(0,0,0,.4)';
+      if (hs) { g.fillStyle = '#e5383b'; g.fillRect(kx, ry - ch/2, cw, ch); g.strokeRect(kx, ry - ch/2, cw, ch); kx -= cw + ch*.15; }
+      for (let j = 0; j < n; j++) { g.fillStyle = '#ffd21f'; g.fillRect(kx, ry - ch/2, cw, ch); g.strokeRect(kx, ry - ch/2, cw, ch); kx -= cw + ch*.15; }
+    }
+  });
+
+  // 真ん中：時計
+  const cx0 = sideW + gap, cw = W - sideW*2 - gap*2, cx = W/2;
+  if (M.result) {
+    const t = M.result.winner ? name(M.result.winner) + 'の勝ち（' + M.result.reason + '）' : M.result.reason;
+    let fs = Math.min(HH*.065, cw*.08); g.font = '900 ' + Math.round(fs) + 'px ' + F;
+    while (g.measureText(t).width > cw*.92 && fs > 8) { fs *= .92; g.font = '900 ' + Math.round(fs) + 'px ' + F; }
+    g.fillStyle = M.result.winner ? '#2fbf71' : '#8e9bb5'; rr(cx0, T + gap, cw, fs*1.8, fs*.4); g.fill();
+    g.fillStyle = '#03140b'; g.textAlign = 'center'; g.fillText(t, cx, T + gap + fs*.9);
+  }
+  const clk = M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain);
+  const cf = Math.min(cw / (clk.length*.56), HH*.46), cyc = T + HH*.36;
+  g.textAlign = 'center';
+  g.fillStyle = M.gs ? '#ff7a1a' : (M.running && !M.sono ? '#ffffff' : '#ffb21f');
+  g.font = '800 ' + Math.round(cf) + 'px ' + F;
+  g.fillText(clk, cx, cyc);
+  g.fillStyle = '#8e9bb5'; g.font = '800 ' + Math.round(Math.min(cf*.17, HH*.07)) + 'px ' + F;
+  g.fillText(M.sono ? 'そのまま' : M.gs ? 'ゴールデンスコア' : (M.running ? '試合中' : (M.remain < M.dur ? '待て' : '本戦 ' + fmtClock(M.dur))), cx, cyc + cf*.56);
+
+  // 抑え込み（時計の下に大きく）
+  const od = M.osae || M.osaeHold;
+  if (od) {
+    const bh = HH*.24, by = H - gap - bh;
+    g.globalAlpha = M.osae ? 1 : .9;
+    g.fillStyle = od.side === 'w' ? '#f4f6f9' : bRGBA(1);
+    rr(cx0, by, cw, bh, m*.03); g.fill();
+    g.strokeStyle = '#ffb21f'; g.lineWidth = m*.012;
+    if (!M.osae) g.setLineDash([m*.03, m*.02]);
+    rr(cx0, by, cw, bh, m*.03); g.stroke(); g.setLineDash([]);
+    g.fillStyle = od.side === 'w' ? '#121826' : '#ffffff';
+    g.textAlign = 'left'; g.font = '900 ' + Math.round(Math.min(bh*.3, cw*.09)) + 'px ' + F;
+    g.fillText(name(od.side) + ' ' + (M.osae ? '抑え込み' : '解けた'), cx0 + cw*.05, by + bh/2);
+    g.textAlign = 'right'; g.font = '900 ' + Math.round(Math.min(bh*.72, cw*.2)) + 'px ' + F;
+    g.fillText((od.t/1000).toFixed(1), cx0 + cw*.95, by + bh/2 + bh*.03);
+    g.globalAlpha = 1;
+  }
+}
 
 function drawDemo(){
   const W = cv.width, H = cv.height, t = performance.now()/1000;
@@ -870,7 +1075,8 @@ function drawDemo(){
   g.fillText('DEMO  ' + t.toFixed(1) + 's', W*.02, H*.06);
 }
 
-function rr(x, y, w, h, r){ g.beginPath(); g.moveTo(x+r, y); g.arcTo(x+w, y, x+w, y+h, r); g.arcTo(x+w, y+h, x, y+h, r); g.arcTo(x, y+h, x, y, r); g.arcTo(x, y, x+w, y, r); g.closePath(); }
+function rrc(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x+r, y); c.arcTo(x+w, y, x+w, y+h, r); c.arcTo(x+w, y+h, x, y+h, r); c.arcTo(x, y+h, x, y, r); c.arcTo(x, y, x+w, y, r); c.closePath(); }
+function rr(x, y, w, h, r){ rrc(g, x, y, w, h, r); }
 
 // 映像に焼き込むスコアボード： [左の選手 名前 技 有 指] [時間] [右の選手 名前 技 有 指]
 // 抑え込み時間は時間の真上に大きく表示。左右は画面の配置（スコアの左右入れ替え）と同じ。
@@ -942,11 +1148,11 @@ function drawOverlay(){
   // 時間（真ん中）
   g.fillStyle = 'rgba(8,12,22,.93)'; g.fillRect(cx0, y0, clockW*u, bh);
   g.textAlign = 'center';
-  g.fillStyle = M.gs ? '#ff7a1a' : (M.running ? '#ffffff' : '#ffb21f');
+  g.fillStyle = M.gs ? '#ff7a1a' : (M.running && !M.sono ? '#ffffff' : '#ffb21f');
   g.font = '800 ' + Math.round(u*.92) + 'px ' + F;
   g.fillText(M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain), cx0 + clockW*u/2, y0 + bh*.43);
   g.font = '700 ' + Math.round(u*.27) + 'px ' + F; g.fillStyle = '#8e9bb5';
-  g.fillText(M.gs ? 'GOLDEN SCORE' : (M.running ? '' : 'MATE'), cx0 + clockW*u/2, y0 + bh*.85);
+  g.fillText(M.sono ? 'SONOMAMA' : M.gs ? 'GOLDEN SCORE' : (M.running ? '' : 'MATE'), cx0 + clockW*u/2, y0 + bh*.85);
 
   // 抑え込み（時間の真上に大きく）
   const od = M.osae || M.osaeHold;
@@ -1073,6 +1279,7 @@ function knownDuration(v, fallback){
 }
 
 async function openReplay(opt){
+  if (R.src === 'none') { toast('カメラなしで起動しているため、リプレイは使えません'); return; }
   const live = recNow() != null;
   if (!R.chunks.length && !live) { toast('まだ録画された映像がありません。先に「録画」を押してください'); return; }
   $('rp').hidden = false;
@@ -1200,7 +1407,7 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 /* ---------- settings sheet ---------- */
 function openSettings(){
   renderCamSetting();
-  { const m = pickMime(); $('verInfo').textContent = 'バージョン 18　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
+  { const m = pickMime(); $('verInfo').textContent = 'バージョン 25　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
@@ -1232,6 +1439,7 @@ $('stForm').addEventListener('submit', e => {
 /* ---------- wiring ---------- */
 $('btnCam').onclick = () => { unlockAudio(); startCamera(); };
 $('btnDemo').onclick = () => { unlockAudio(); startDemo(); };
+$('btnNoCam').onclick = () => { unlockAudio(); startNoCam(); };
 function renderCamSetting(){
   $('sCamNow').textContent = R.src === 'cam' ? (cfg.facing === 'user' ? '前面カメラ（自撮り側）' : '背面カメラ') : 'カメラを起動すると切り替えられます';
   $('sFlip').disabled = R.src !== 'cam';
@@ -1248,6 +1456,8 @@ $('rpHajime').onclick = toggleClock;
 $('rpOsaeW').onclick = () => startOsae('w');
 $('rpOsaeB').onclick = () => startOsae('b');
 $('rpToketa').onclick = endOsae;
+$('btnSono').onclick = toggleSono;
+$('rpSono').onclick = toggleSono;
 $('btnReplay').onclick = () => openReplay({back: cfg.replay});
 $('btnMark').onclick = () => { addLog('x', '印'); toast('この時点に印を付けました'); };
 $('btnUndo').onclick = undo;
@@ -1315,9 +1525,179 @@ window.addEventListener('beforeunload', e => { if (recNow() != null || R.chunks.
   document.addEventListener('fullscreenchange', () => { b.textContent = document.fullscreenElement ? '全画面解除' : '全画面'; });
 })();
 
+/* ---------- 別の端末（iPad など）にスコアを表示 ----------
+   公開の MQTT ブローカー（中継サーバー）に WebSocket でつなぎ、6桁の番号ごとの「部屋」に
+   試合の状態（時間・スコア・抑え込み・選手名）を送る。iPad は同じ番号の部屋を受信して大きく表示する。
+   ライブラリは使わず、必要最小限の MQTT 3.1.1（接続・購読・送信・生存確認）だけを実装している。 */
+const LINK_BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const LINK_TOPIC = code => 'judo-scorecam/v1/' + code;
+
+function mqttClient(url, onMsg, onState){
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  let ws = null, buf = new Uint8Array(0), ping = null, closed = false, ready = false, pid = 1;
+  const subs = [];
+  const vlen = n => { const o = []; do { let b = n % 128; n = Math.floor(n / 128); if (n) b |= 128; o.push(b); } while (n); return o; };
+  const str = s => { const b = enc.encode(s); return [b.length >> 8, b.length & 255, ...b]; };
+  const pkt = (h, body) => new Uint8Array([h, ...vlen(body.length), ...body]);
+  const send = p => { try { if (ws && ws.readyState === 1) ws.send(p); } catch (e) {} };
+  const doSub = t => { send(pkt(0x82, [pid >> 8, pid & 255, ...str(t), 0])); pid = pid % 65535 + 1; };
+  function open(){
+    if (closed) return;
+    try { ws = new WebSocket(url, 'mqtt'); } catch (e) { setTimeout(open, 3000); return; }
+    ws.binaryType = 'arraybuffer';
+    ws.onopen = () => {
+      send(pkt(0x10, [...str('MQTT'), 4, 2, 0, 60, ...str('jsc' + Math.random().toString(36).slice(2, 12))]));
+      clearInterval(ping); ping = setInterval(() => send(new Uint8Array([0xC0, 0])), 25000);
+    };
+    ws.onmessage = e => {
+      const d = new Uint8Array(e.data), nb = new Uint8Array(buf.length + d.length); nb.set(buf); nb.set(d, buf.length); buf = nb;
+      for (;;) {
+        if (buf.length < 2) return;
+        let len = 0, mul = 1, i = 1, b;
+        do { if (i >= buf.length) return; b = buf[i++]; len += (b & 127) * mul; mul *= 128; } while (b & 128);
+        if (buf.length < i + len) return;
+        const type = buf[0] >> 4, qos = (buf[0] >> 1) & 3, body = buf.subarray(i, i + len);
+        if (type === 2) { ready = true; subs.forEach(doSub); onState && onState('open'); }
+        else if (type === 3) {
+          const tl = (body[0] << 8) | body[1], off = 2 + tl + (qos ? 2 : 0);
+          onMsg && onMsg(dec.decode(body.subarray(2, 2 + tl)), dec.decode(body.subarray(off)));
+        }
+        buf = buf.slice(i + len);
+      }
+    };
+    ws.onerror = () => { try { ws.close(); } catch (e) {} };
+    ws.onclose = () => {
+      ready = false; clearInterval(ping); buf = new Uint8Array(0);
+      onState && onState('closed');
+      if (!closed) setTimeout(open, 3000);
+    };
+  }
+  open();
+  return {
+    get ready(){ return ready; },
+    publish(topic, text, retain){ if (!ready) return false; send(pkt(0x30 | (retain ? 1 : 0), [...str(topic), ...enc.encode(text)])); return true; },
+    subscribe(t){ subs.push(t); if (ready) doSub(t); },
+    close(){ closed = true; clearInterval(ping); try { ws && ws.close(); } catch (e) {} }
+  };
+}
+
+/* 送る側（撮影している iPhone） */
+const LINK = {code:null, clients:[], last:'', lastAt:0, timer:null};
+function linkState(){
+  return {v:1, nameW:name('w'), nameB:name('b'), color:cfg.color, swap:!!cfg.swap, yuko:!!cfg.yuko, awasete:!!cfg.awasete,
+    dur:M.dur, remain:M.remain, gs:M.gs, gsT:M.gsT, running:M.running, sono:!!M.sono, score:M.score, result:M.result,
+    osae:M.osae ? {side:M.osae.side, t:M.osae.t} : null, hold:M.osaeHold || null};
+}
+function linkPublish(force){
+  if (!LINK.code) return;
+  const s = linkState();
+  const key = JSON.stringify(Object.assign({}, s, {remain:0, gsT:0, osae:s.osae && {side:s.osae.side}}));
+  const now = performance.now();
+  if (!force && key === LINK.last && now - LINK.lastAt < 1000) return;   // 変化があれば即送信、なければ1秒ごとに時刻合わせ
+  LINK.last = key; LINK.lastAt = now;
+  const txt = JSON.stringify(s);
+  LINK.clients.forEach(c => c.publish(LINK_TOPIC(LINK.code), txt, true));
+}
+function linkStart(){
+  if (LINK.code) return;
+  let code = null; try { code = localStorage.getItem('judoScoreCam.linkCode'); } catch (e) {}
+  if (!/^\d{6}$/.test(code || '')) { code = String(100000 + Math.floor(Math.random() * 900000)); try { localStorage.setItem('judoScoreCam.linkCode', code); } catch (e) {} }
+  LINK.code = code; LINK.last = '';
+  LINK.clients = LINK_BROKERS.map(u => mqttClient(u, null, st => { if (st === 'open') linkPublish(true); renderLinkUI(); }));
+  LINK.timer = setInterval(() => linkPublish(false), 200);
+  renderLinkUI();
+}
+function linkStop(){
+  if (!LINK.code) return;
+  const t = LINK_TOPIC(LINK.code), cs = LINK.clients;
+  cs.forEach(c => c.publish(t, '', true));            // 中継サーバーに残した最新の状態も消す
+  setTimeout(() => cs.forEach(c => c.close()), 400);
+  clearInterval(LINK.timer); LINK.code = null; LINK.clients = [];
+  renderLinkUI();
+}
+function renderLinkUI(){
+  const on = !!LINK.code, n = LINK.clients.filter(c => c.ready).length;
+  $('lkCode').textContent = on ? LINK.code : '------';
+  $('lkCode').classList.toggle('off', !on);
+  $('lkState').textContent = on ? (n ? '送信中です。iPad で「表示専用で起動」を押し、この番号を入力してください' : '中継サーバーに接続しています…（インターネットが必要です）') : '停止中';
+  $('lkBtn').textContent = on ? '送信を停止' : '送信を開始';
+  $('lkBadge').hidden = !on;
+  $('lkBadge').textContent = (n ? '● ' : '○ ') + 'iPad表示 ' + (on ? LINK.code : '');
+}
+$('lkBtn').onclick = () => { LINK.code ? linkStop() : linkStart(); };
+
+/* 表示する側（iPad など） */
+function viewStart(code){
+  VIEW = {on:true, code, client:null, bi:0, st:null, at:0, gotAny:false, ended:false, connAt:0};
+  try { localStorage.setItem('judoScoreCam.viewCode', code); } catch (e) {}
+  R.src = 'none';
+  document.body.classList.add('viewer', 'nocam');
+  $('startBox').hidden = true; $('vw').hidden = true;
+  keepAwake();
+  viewConnect();
+  // 7秒たっても何も届かなければ、もう一方の中継サーバーに切り替えて試す
+  setInterval(() => { if (!VIEW.gotAny && performance.now() - VIEW.connAt > 7000) { VIEW.bi = (VIEW.bi + 1) % LINK_BROKERS.length; viewConnect(); } }, 1000);
+}
+function viewConnect(){
+  if (VIEW.client) VIEW.client.close();
+  VIEW.connAt = performance.now();
+  VIEW.client = mqttClient(LINK_BROKERS[VIEW.bi], (t, txt) => viewRecv(txt), null);
+  VIEW.client.subscribe(LINK_TOPIC(VIEW.code));
+}
+function viewRecv(txt){
+  VIEW.gotAny = true;
+  if (!txt) { VIEW.st = null; VIEW.ended = true; return; }
+  let s; try { s = JSON.parse(txt); } catch (e) { return; }
+  if (!s || s.v !== 1) return;
+  VIEW.st = s; VIEW.at = performance.now(); VIEW.ended = false;
+  // 表示に使う設定を送る側に合わせる（この端末の設定としては保存しない）
+  const chg = cfg.color !== s.color || !!cfg.swap !== s.swap || !!cfg.yuko !== s.yuko;
+  cfg.nameW = s.nameW; cfg.nameB = s.nameB; cfg.color = s.color; cfg.swap = s.swap; cfg.yuko = s.yuko; cfg.awasete = s.awasete;
+  if (chg) applyRuleVisibility();
+}
+// 受信した時刻からの経過分だけ時計と抑え込み時間を進めて、なめらかに表示する
+function viewStep(){
+  const s = VIEW.st; if (!s) return;
+  const el = Math.min(performance.now() - VIEW.at, 3000);   // 通信が途切れても3秒以上は先に進めない
+  const run = s.running && !s.sono;
+  M.dur = s.dur; M.gs = s.gs; M.score = s.score; M.result = s.result; M.running = s.running; M.sono = s.sono;
+  M.remain = run && !s.gs ? Math.max(0, s.remain - el) : s.remain;
+  M.gsT = run && s.gs ? s.gsT + el : s.gsT;
+  M.osae = s.osae ? {side:s.osae.side, t:s.osae.t + (s.sono ? 0 : el)} : null;
+  M.osaeHold = s.hold;
+}
+function drawViewStatus(){
+  const W = cv.width, H = cv.height, m = Math.min(W, H);
+  const F = 'system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif';
+  if (!VIEW.st) {
+    g.fillStyle = '#05080f'; g.fillRect(0, 0, W, H);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#eef2f8'; g.font = '800 ' + Math.round(m*.07) + 'px ' + F;
+    g.fillText(VIEW.ended ? '送信が停止されました' : '番号 ' + VIEW.code + ' の送信を待っています…', W/2, H*.45);
+    g.fillStyle = '#8e9bb5'; g.font = '600 ' + Math.round(m*.04) + 'px ' + F;
+    g.fillText('iPhone の「設定」→「iPad などにスコアを表示」で「送信を開始」を押してください', W/2, H*.58);
+  } else if (performance.now() - VIEW.at > 5000) {
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = 'rgba(229,56,59,.9)'; g.font = '800 ' + Math.round(m*.035) + 'px ' + F;
+    g.fillText('通信が途切れています（再接続中…）', W/2, H - m*.02 - m*.02);
+  }
+}
+$('btnView').onclick = () => {
+  let c = ''; try { c = localStorage.getItem('judoScoreCam.viewCode') || ''; } catch (e) {}
+  $('vwCode').value = c; $('vw').hidden = false;
+};
+$('vwGo').onclick = () => {
+  const c = $('vwCode').value.replace(/\D/g, '');
+  if (c.length !== 6) { toast('6桁の番号を入力してください'); return; }
+  unlockAudio(); viewStart(c);
+};
+$('vwBack').onclick = () => { $('vw').hidden = true; };
+$('vwExit').onclick = () => location.reload();
+
 applyRuleVisibility();
 renderLog();
 render();
+renderLinkUI();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
