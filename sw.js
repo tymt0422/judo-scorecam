@@ -1,7 +1,7 @@
 // オフラインでも起動できるようにアプリ本体をキャッシュする。
 // キャッシュ優先で即起動し、裏でネットから最新版を取得して次回起動時に反映する
 // （体育館などで電波が弱くても待たされない）。
-const CACHE = 'judo-scorecam-v3';
+const CACHE = 'judo-scorecam-v7';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

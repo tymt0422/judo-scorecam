@@ -63,7 +63,6 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .recbadge{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);border-radius:8px;padding:3px 8px;font-size:12px;
   font-variant-numeric:tabular-nums;display:flex;gap:6px;align-items:center}
 .recbadge i{width:8px;height:8px;border-radius:50%;background:var(--red)}
-.camsw{position:absolute;right:8px;top:8px;background:rgba(0,0,0,.55);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700}
 
 /* board */
 .board{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:stretch}
@@ -92,8 +91,12 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .ob.b{background:var(--blue-side);color:var(--blue-ink)}
 .ob small{display:block;font-size:11px;font-weight:700;opacity:.7}
 .toketa{grid-column:span 2;background:var(--clock);color:#1a1200;border-radius:var(--r);font-weight:900;font-size:19px}
-/* 抑込ボタンはスコア欄と同じ左右に置く：[左の抑込][はじめ][右の抑込] */
-.ctl{grid-template-columns:1fr 1.3fr 1fr}
+/* 抑え込みボタンはスコア欄と同じ左右に置く：[左の抑え込み][始め][右の抑え込み] */
+.ctl{grid-template-columns:1fr 1.9fr 1fr}
+.ctl .hajime{font-size:30px;padding:16px 6px}
+/* 抑え込み中も「待て」は大きいまま：[　　待て　　][解けた] */
+.ctl:has(#btnToketa:not([hidden])){grid-template-columns:1.5fr 1fr!important}
+.ctl #btnToketa{grid-column:auto}
 #btnOsaeW,#rpOsaeW{order:1} #btnHajime,#rpHajime{order:2} #btnOsaeB,#rpOsaeB{order:3} #btnToketa,#rpToketa{order:4}
 body.swap #btnOsaeW,body.swap #rpOsaeW{order:3}
 body.swap #btnOsaeB,body.swap #rpOsaeB{order:1}
@@ -177,7 +180,7 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .rplive .clockmini.gs{color:var(--gs)}
 .rplive .osae{min-width:0;flex-direction:row;gap:6px;padding:2px 10px;border-radius:10px}
 .rplive .osae b{font-size:24px}
-.rplive .hajime{font-size:16px;letter-spacing:.04em;padding:8px 16px;border-radius:10px}
+.rplive .hajime{font-size:21px;letter-spacing:.08em;padding:6px 26px;border-radius:10px}
 .rplive .ob{padding:4px 12px;border-radius:10px;font-size:14px}
 .rplive .toketa{padding:8px 16px;font-size:16px;border-radius:10px}
 .osae.held{opacity:.8;border-style:dashed}
@@ -198,6 +201,8 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .tm{justify-content:center}
 .tm .tmrow{display:flex;align-items:center;gap:8px;justify-content:center;margin:18px 0 6px;font-size:18px;font-weight:700}
 .tm .tmrow input{width:4.2em;font-size:30px;text-align:center;font-variant-numeric:tabular-nums;padding:8px}
+.st .flipb{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-weight:700;white-space:nowrap}
+.st .flipb:disabled{opacity:.4}
 .st .cancel{margin-top:8px;background:var(--panel2);border-radius:10px;padding:12px;font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);
   padding:10px 16px;border-radius:999px;font-weight:700;z-index:40;max-width:90vw;text-align:center}
@@ -205,16 +210,17 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .ctrlzone{display:flex;flex-direction:column;gap:8px;min-width:0}
 
 /* landscape: 白 left | camera (max size) + one-row match controls | 青 right (swappable).
-   Header and tool buttons float over the top of the camera so the camera gets the full height. */
+   Header and tool buttons float over the bottom corners of the camera (browser bars can hide the top). */
 @media (orientation:landscape) and (min-width:640px){
   html,body{overflow:hidden}
-  .app{display:grid;height:100%;min-height:0;gap:6px;
+  .app{display:grid;height:100%;height:100dvh;min-height:0;gap:6px;
     grid-template-columns:minmax(112px,15%) minmax(0,1fr) minmax(112px,15%);
     grid-template-rows:minmax(0,1fr) auto;
     grid-template-areas:"w stage b" "w ctrl b";
     padding-top:max(6px,env(safe-area-inset-top,0px));padding-bottom:max(6px,env(safe-area-inset-bottom,0px))}
   body.swap .app{grid-template-areas:"b stage w" "b ctrl w"}
-  .top,.tools{grid-area:stage;align-self:start;z-index:4;display:flex;gap:5px;padding:6px}
+  .top,.tools{grid-area:stage;align-self:end;z-index:4;display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:6px}
+  .tools{padding-bottom:34px}   /* 録画時間の表示の上に積む */
   .top{justify-self:start}
   .tools{justify-self:end}
   .top .brand,#btnCopy{display:none}
@@ -225,8 +231,7 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
   .log{display:none}
   .stage{grid-area:stage;max-height:none;height:100%;aspect-ratio:auto;min-height:0;border-radius:10px}
   .recbadge{top:auto;left:auto;bottom:8px;right:8px}
-  .camsw{top:auto;bottom:36px;right:8px}
-  .banner{grid-area:stage;align-self:start;justify-self:center;margin-top:44px;z-index:3;font-size:14px;padding:5px 12px;max-width:calc(100% - 16px)}
+  .banner{grid-area:stage;align-self:start;justify-self:center;margin-top:8px;z-index:3;font-size:14px;padding:5px 12px;max-width:calc(100% - 16px)}
   .side.w{grid-area:w}
   .side.b{grid-area:b}
   .side{min-height:0;overflow:auto;gap:5px;padding:6px}
@@ -245,12 +250,13 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
   .osae{min-width:0;padding:2px 8px;border-radius:10px}
   .osae span{font-size:10px}
   .osae b{font-size:22px}
-  .ctl{flex:1.25;min-width:0;grid-template-columns:1fr 1.2fr 1fr;gap:5px}
+  .ctl{flex:1.25;min-width:0;grid-template-columns:1fr 1.9fr 1fr;gap:5px}
   .hajime{font-size:17px;padding:6px 2px;border-radius:10px}
+  .ctl .hajime{font-size:clamp(22px,3.4vw,32px);padding:4px 2px;letter-spacing:.12em}
   .ob{padding:2px;font-size:13px;border-radius:10px}
   .ob small{font-size:10px}
   .toketa{font-size:16px;border-radius:10px}
-  .ctl{flex:1}
+  .ctl{flex:1.6}
   .rpl{flex:none;gap:5px}
   .rbtn{flex:none;padding:6px 12px;font-size:14px;white-space:nowrap;border-radius:10px;line-height:1.15}
   .rpsfx{display:none}
@@ -287,7 +293,6 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
     <canvas id="cv" width="1280" height="720"></canvas>
     <video class="src" id="camVideo" playsinline muted autoplay></video>
     <div class="recbadge" id="recBadge" hidden><i></i><span id="recTime">00:00</span></div>
-    <button class="camsw" id="btnFlip" hidden>カメラ切替</button>
     <div class="start" id="startBox">
       <div class="row">
         <button class="pbtn" id="btnCam">カメラを起動</button>
@@ -302,21 +307,18 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
   <div class="ctrlzone">
     <div class="board">
       <div class="clock" id="clockBox"><span id="clk">4:00</span><small id="clkTag">本戦</small></div>
-      <div class="osae" id="osaeBox" hidden><span id="osaeLbl">抑込</span><b id="osaeT">0.0</b></div>
+      <div class="osae" id="osaeBox" hidden><span id="osaeLbl">抑え込み</span><b id="osaeT">0.0</b></div>
     </div>
 
     <div class="ctl">
-      <button class="hajime" id="btnHajime">はじめ</button>
-      <button class="ob w" id="btnOsaeW"><small>白</small>抑込</button>
-      <button class="ob b" id="btnOsaeB"><small class="cn">青</small>抑込</button>
+      <button class="hajime" id="btnHajime">始め</button>
+      <button class="ob w" id="btnOsaeW"><small>白</small>抑え込み</button>
+      <button class="ob b" id="btnOsaeB"><small class="cn">青</small>抑え込み</button>
       <button class="toketa" id="btnToketa" hidden>解けた</button>
     </div>
 
     <div class="rpl">
-      <button class="rbtn" id="btnReplay">リプレイ<span class="rpsfx">（<span id="rpSecLbl">10</span>秒前）</span><span class="rpshort"><span id="rpSecLbl2">10</span>秒前から</span></button>
-      <div class="seg" id="rpSeg" role="group" aria-label="何秒前から再生するか">
-        <button data-s="5">5</button><button data-s="10">10</button><button data-s="15">15</button><button data-s="30">30</button>
-      </div>
+      <button class="rbtn" id="btnReplay">リプレイ</button>
       <button class="mark" id="btnMark">印</button>
     </div>
   </div>
@@ -370,10 +372,10 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
     <div class="rpttl"><h2>ビデオ確認</h2><span id="rpInfo"></span></div>
     <div class="rplive" aria-label="試合の操作">
       <span class="clockmini" id="rpClk">4:00</span>
-      <div class="osae" id="rpOsae" hidden><span id="rpOsaeLbl">抑込</span><b id="rpOsaeT">0.0</b></div>
-      <button class="hajime" id="rpHajime">はじめ</button>
-      <button class="ob w" id="rpOsaeW"><small>白</small>抑込</button>
-      <button class="ob b" id="rpOsaeB"><small class="cn">青</small>抑込</button>
+      <div class="osae" id="rpOsae" hidden><span id="rpOsaeLbl">抑え込み</span><b id="rpOsaeT">0.0</b></div>
+      <button class="hajime" id="rpHajime">始め</button>
+      <button class="ob w" id="rpOsaeW"><small>白</small>抑え込み</button>
+      <button class="ob b" id="rpOsaeB"><small class="cn">青</small>抑え込み</button>
       <button class="toketa" id="rpToketa" hidden>解けた</button>
       <button class="close" id="rpClose">閉じる</button>
     </div>
@@ -413,10 +415,11 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
     <div class="f"><label for="sGs">ゴールデンスコア<small>同点で時間終了したら延長（時間無制限）</small></label><input type="checkbox" id="sGs"></div>
     <div class="f"><label for="sYuko">有効を使う</label><input type="checkbox" id="sYuko"></div>
     <div class="f"><label for="sAwa">技あり2つで一本<small>合わせ技一本</small></label><input type="checkbox" id="sAwa"></div>
-    <div class="f"><label for="sOI">抑込 一本（秒）</label><input type="number" id="sOI" min="1" max="60"></div>
-    <div class="f"><label for="sOW">抑込 技あり（秒）</label><input type="number" id="sOW" min="1" max="60"></div>
-    <div class="f"><label for="sOY">抑込 有効（秒）</label><input type="number" id="sOY" min="1" max="60"></div>
+    <div class="f"><label for="sOI">抑え込み 一本（秒）</label><input type="number" id="sOI" min="1" max="60"></div>
+    <div class="f"><label for="sOW">抑え込み 技あり（秒）</label><input type="number" id="sOW" min="1" max="60"></div>
+    <div class="f"><label for="sOY">抑え込み 有効（秒）</label><input type="number" id="sOY" min="1" max="60"></div>
     <div class="sec">撮影</div>
+    <div class="f"><label>使うカメラ<small id="sCamNow">背面カメラ</small></label><button type="button" class="flipb" id="sFlip">カメラ切替</button></div>
     <div class="f"><label for="sOv">スコアを映像に表示<small>録画した動画に時計とスコアを焼き込みます</small></label><input type="checkbox" id="sOv"></div>
     <div class="f"><label for="sAu">音声も録音</label><input type="checkbox" id="sAu"></div>
     <div class="f"><label for="sQ">画質</label>
@@ -508,7 +511,7 @@ function award(side, type, note, replace){
   if (M.result) { toast('試合は終了しています（取消で戻せます）'); return; }
   pushHist();
   const sc = M.score[side];
-  if (replace && sc[replace] > 0) sc[replace]--;   // 抑込の格上げ（有効→技あり→一本）
+  if (replace && sc[replace] > 0) sc[replace]--;   // 抑え込みの格上げ（有効→技あり→一本）
   sc[type]++;
   addLog(side, LABEL[type] + (type==='shido' ? '（' + sc.shido + '）' : '') + (note ? ' ' + note : ''));
   if (type === 'ippon') return finish(side, '一本');
@@ -537,11 +540,11 @@ function timeUp(){
 
 function toggleClock(){
   if (M.result) { toast('「次の試合」で新しい試合を始めます'); return; }
-  if (M.running) {            // まて
+  if (M.running) {            // 待て
     if (M.osae) endOsae();
     M.running = false;
-    M.osaeHold = null;        // 解けた後に残していた抑込時間は「まて」で消す
-  } else {                     // はじめ
+    M.osaeHold = null;        // 解けた後に残していた抑え込み時間は「待て」で消す
+  } else {                     // 始め
     if (!M.gs && M.remain <= 0) return;
     M.running = true;
     unlockAudio();
@@ -555,8 +558,8 @@ function startOsae(side){
   M.running = true;
   unlockAudio();
 }
-// 抑込の秒数に届いた時点でスコアを付ける（有効5秒→技あり10秒→一本20秒）。
-// 1回の抑込で得るのは1つだけなので、上の段階に届いたら前に付けた分を置き換える。
+// 抑え込みの秒数に届いた時点でスコアを付ける（有効5秒→技あり10秒→一本20秒）。
+// 1回の抑え込みで得るのは1つだけなので、上の段階に届いたら前に付けた分を置き換える。
 const RANK = {yuko:1, waza:2, ippon:3};
 function osaeLevel(s){
   if (s >= cfg.oI) return 'ippon';
@@ -568,14 +571,14 @@ function osaeAward(o){
   const type = osaeLevel(o.t/1000);
   if (!type || (o.got && RANK[type] <= RANK[o.got])) return;
   const prev = o.got; o.got = type;
-  award(o.side, type, '（抑込 ' + (o.t/1000).toFixed(1) + '秒' + (prev ? '・' + LABEL[prev] + 'から' : '') + '）', prev);
+  award(o.side, type, '（抑え込み ' + (o.t/1000).toFixed(1) + '秒' + (prev ? '・' + LABEL[prev] + 'から' : '') + '）', prev);
   if (!M.result) beep(150, 1500);
 }
 function endOsae(){
   const o = M.osae; if (!o) return;
-  M.osae = null; M.osaeHold = {side: o.side, t: o.t};   // 解けた後も「まて」まで表示を残す
+  M.osae = null; M.osaeHold = {side: o.side, t: o.t};   // 解けた後も「待て」まで表示を残す
   osaeAward(o);
-  if (!o.got) addLog(o.side, '解けた（抑込 ' + (o.t/1000).toFixed(1) + '秒）');
+  if (!o.got) addLog(o.side, '解けた（抑え込み ' + (o.t/1000).toFixed(1) + '秒）');
   if (!M.result && !M.gs && M.remain <= 0) timeUp();
 }
 
@@ -606,11 +609,11 @@ function setHidden(id, h){ const k = id + ':h'; if (memo[k] !== h) { memo[k] = h
 
 function render(){
   setText('clk', M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain));
-  setText('clkTag', M.gs ? 'ゴールデンスコア' : (M.running ? '試合中' : (M.remain < M.dur ? 'まて' : '本戦 ' + fmtClock(M.dur))));
+  setText('clkTag', M.gs ? 'ゴールデンスコア' : (M.running ? '試合中' : (M.remain < M.dur ? '待て' : '本戦 ' + fmtClock(M.dur))));
   const cb = $('clockBox'); cb.classList.toggle('run', M.running && !M.gs); cb.classList.toggle('gs', M.gs);
 
   const hj = $('btnHajime');
-  setText('btnHajime', M.running ? 'まて' : 'はじめ');
+  setText('btnHajime', M.running ? '待て' : '始め');
   hj.classList.toggle('mate', M.running);
   hj.disabled = !!M.result || (!M.gs && M.remain <= 0 && !M.running);
 
@@ -621,14 +624,14 @@ function render(){
     setHidden(box, !od); setHidden(tk, !o); setHidden(ow, !!o); setHidden(obb, !!o);
     if (od) {
       const el = $(box); el.classList.toggle('w', od.side==='w'); el.classList.toggle('b', od.side==='b'); el.classList.toggle('held', !!hd);
-      setText(lbl, name(od.side) + (hd ? ' 解けた' : ' 抑込'));
+      setText(lbl, name(od.side) + (hd ? ' 解けた' : ' 抑え込み'));
       setText(tt, (od.t/1000).toFixed(1));
     }
   }
   if (rpOpen) {
     setText('rpClk', clkTxt);
     const rc = $('rpClk'); rc.classList.toggle('run', M.running && !M.gs); rc.classList.toggle('gs', M.gs);
-    const rh = $('rpHajime'); setText('rpHajime', M.running ? 'まて' : 'はじめ'); rh.classList.toggle('mate', M.running);
+    const rh = $('rpHajime'); setText('rpHajime', M.running ? '待て' : '始め'); rh.classList.toggle('mate', M.running);
     rh.disabled = hj.disabled;
   }
 
@@ -651,7 +654,7 @@ function render(){
   // banner
   let bt = '', bc = '';
   if (M.result) { bt = M.result.winner ? 'それまで — ' + name(M.result.winner) + 'の勝ち（' + M.result.reason + '）' : 'それまで — ' + M.result.reason; bc = M.result.winner ? '' : 'draw'; }
-  else if (M.gs && !M.running && M.gsT === 0) { bt = 'ゴールデンスコア —「はじめ」で開始'; bc = 'gs'; }
+  else if (M.gs && !M.running && M.gsT === 0) { bt = 'ゴールデンスコア —「始め」で開始'; bc = 'gs'; }
   setHidden('banner', !bt);
   if (bt) { setText('banner', bt); $('banner').className = 'banner ' + bc; }
 
@@ -731,7 +734,6 @@ async function startCamera(){
   try { await camVideo.play(); } catch (e) {}
   R.src = 'cam';
   $('startBox').hidden = true;
-  $('btnFlip').hidden = false;
   enableRecUI();
   keepAwake();
 }
@@ -806,7 +808,7 @@ function drawDemo(){
 function rr(x, y, w, h, r){ g.beginPath(); g.moveTo(x+r, y); g.arcTo(x+w, y, x+w, y+h, r); g.arcTo(x+w, y+h, x, y+h, r); g.arcTo(x, y+h, x, y, r); g.arcTo(x, y, x+w, y, r); g.closePath(); }
 
 // 映像に焼き込むスコアボード： [左の選手 名前 技 有 指] [時間] [右の選手 名前 技 有 指]
-// 抑込時間は時間の真上に大きく表示。左右は画面の配置（スコアの左右入れ替え）と同じ。
+// 抑え込み時間は時間の真上に大きく表示。左右は画面の配置（スコアの左右入れ替え）と同じ。
 function drawOverlay(){
   const W = cv.width, H = cv.height;
   const F = 'system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif';
@@ -816,7 +818,7 @@ function drawOverlay(){
   const total = sideW*2 + clockW;
   const pad = Math.min(W, H) * .027;
   let u = Math.min(W, H) / 13;
-  u = Math.min(u, (W - pad*2) / total);              // 縦長の映像でも横幅に収める
+  u = Math.min(u, W * .68 / total);                  // 横幅の68%以内（左右の隅は画面のボタン用に空ける・縦長の映像でも収まる）
   const bh = u*1.3;
   const x0 = (W - total*u)/2, y0 = H - pad - bh;
   const cx0 = x0 + sideW*u;                           // clock box left edge
@@ -881,10 +883,10 @@ function drawOverlay(){
   g.font = '700 ' + Math.round(u*.27) + 'px ' + F; g.fillStyle = '#8e9bb5';
   g.fillText(M.gs ? 'GOLDEN SCORE' : (M.running ? '' : 'MATE'), cx0 + clockW*u/2, y0 + bh*.85);
 
-  // 抑込（時間の真上に大きく）
+  // 抑え込み（時間の真上に大きく）
   const od = M.osae || M.osaeHold;
   if (od) {
-    const ow = u*5.4, oh = u*1.35, ox = cx0 + clockW*u/2 - ow/2, oy = y0 - oh - u*.18;
+    const ow = u*5.9, oh = u*1.35, ox = cx0 + clockW*u/2 - ow/2, oy = y0 - oh - u*.18;
     g.globalAlpha = M.osae ? 1 : .88;
     g.fillStyle = od.side === 'w' ? 'rgba(244,246,249,.97)' : bRGBA(.97);
     rr(ox, oy, ow, oh, u*.22); g.fill();
@@ -893,7 +895,7 @@ function drawOverlay(){
     rr(ox, oy, ow, oh, u*.22); g.stroke(); g.setLineDash([]);
     g.fillStyle = od.side === 'w' ? '#121826' : '#ffffff';
     g.textAlign = 'left'; g.font = '800 ' + Math.round(u*.46) + 'px ' + F;
-    g.fillText(M.osae ? '抑込' : '解けた', ox + u*.28, oy + oh/2);
+    g.fillText(M.osae ? '抑え込み' : '解けた', ox + u*.28, oy + oh/2);
     g.textAlign = 'right'; g.font = '900 ' + Math.round(u*1.0) + 'px ' + F;
     g.fillText((od.t/1000).toFixed(1), ox + ow - u*.28, oy + oh/2 + u*.03);
     g.globalAlpha = 1;
@@ -1084,7 +1086,7 @@ function summaryText(){
 }
 
 function adjustTime(){
-  if (M.running) { toast('「まて」の間に修正できます'); return; }
+  if (M.running) { toast('「待て」の間に修正できます'); return; }
   const s = Math.round((M.gs ? M.gsT : M.remain) / 1000);
   $('tmTitle').textContent = M.gs ? 'ゴールデンスコアの経過時間' : '残り時間';
   $('tmMin').value = Math.floor(s/60); $('tmSec').value = s % 60;
@@ -1102,6 +1104,7 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 
 /* ---------- settings sheet ---------- */
 function openSettings(){
+  renderCamSetting();
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
@@ -1133,7 +1136,11 @@ $('stForm').addEventListener('submit', e => {
 /* ---------- wiring ---------- */
 $('btnCam').onclick = () => { unlockAudio(); startCamera(); };
 $('btnDemo').onclick = () => { unlockAudio(); startDemo(); };
-$('btnFlip').onclick = flipCamera;
+function renderCamSetting(){
+  $('sCamNow').textContent = R.src === 'cam' ? (cfg.facing === 'user' ? '前面カメラ（自撮り側）' : '背面カメラ') : 'カメラを起動すると切り替えられます';
+  $('sFlip').disabled = R.src !== 'cam';
+}
+$('sFlip').onclick = async () => { await flipCamera(); renderCamSetting(); };
 $('btnRec').onclick = () => { unlockAudio(); recNow() != null ? stopRec() : startRec(); };
 $('btnSave').onclick = saveVideo;
 $('btnSettings').onclick = openSettings;
@@ -1173,10 +1180,8 @@ document.querySelectorAll('.side').forEach(sec => sec.addEventListener('click', 
   unlockAudio(); award(sec.dataset.side, b.dataset.a);
 }));
 function setReplaySec(s){
-  cfg.replay = s; saveCfg(); $('rpSecLbl').textContent = s; $('rpSecLbl2').textContent = s;
-  document.querySelectorAll('#rpSeg button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.s === s)));
+  cfg.replay = s; saveCfg();
 }
-document.querySelectorAll('#rpSeg button').forEach(b => b.onclick = () => setReplaySec(+b.dataset.s));
 setReplaySec(cfg.replay);
 window.addEventListener('beforeunload', e => { if (recNow() != null || R.chunks.length) { e.preventDefault(); e.returnValue = ''; } });
 
