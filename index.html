@@ -212,6 +212,13 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .st .flipb{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-weight:700;white-space:nowrap}
 .st .flipb:disabled{opacity:.4}
 .st .svdl{display:block;text-align:center;color:var(--fg);text-decoration:none}
+#nx h2{text-align:center;font-size:20px}
+.nxrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.nxrow button{border-radius:12px;padding:16px 8px;font-size:18px;font-weight:900}
+.nxyes{background:var(--clock);color:#1a1200;border:3px solid var(--clock)}
+.nxno{background:#fff;color:var(--white-ink);border:3px solid #fff}
+#nx .note{text-align:center}
+.nxback{align-self:center;margin-top:6px;background:var(--panel2);color:var(--muted);border-radius:999px;padding:7px 22px;font-size:13px;font-weight:700}
 .st .cancel{margin-top:8px;background:var(--panel2);border-radius:10px;padding:12px;font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);
   padding:10px 16px;border-radius:999px;font-weight:700;z-index:40;max-width:90vw;text-align:center}
@@ -228,6 +235,9 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
   .app{flex:none;width:100%}
   /* Safari は横持ちでアドレスバーがページの上に重なるため、アプリを画面の下端に固定する */
   html.inbrowser .app{position:fixed;left:0;right:0;bottom:0;margin:0}
+  html.inbrowser .sheet{top:auto;height:100dvh}   /* リプレイ・設定・保存の画面も同じく下端に合わせる */
+  #sv{justify-content:flex-start}
+  #sv .done,#sv .cancel{padding:10px}
   .app{display:grid;height:100%;height:100dvh;min-height:0;gap:6px;
     grid-template-columns:minmax(112px,15%) minmax(0,1fr) minmax(112px,15%);
     grid-template-rows:minmax(0,1fr) auto;
@@ -440,9 +450,11 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
       <select id="sQ"><option value="720">標準（720p）</option><option value="1080">高画質（1080p）</option><option value="480">軽量（480p）</option></select></div>
     <div class="f"><label for="sRp">リプレイ開始<small>「リプレイ」で何秒前から再生するか</small></label>
       <select id="sRp"><option value="5">5秒前</option><option value="10">10秒前</option><option value="15">15秒前</option><option value="30">30秒前</option></select></div>
+    <div class="f"><label for="sAutoRec">試合に合わせて自動で録画<small>「始め」で録画開始、「次の試合」で停止。「録画」を押さなくてもリプレイが見られます</small></label><input type="checkbox" id="sAutoRec"></div>
     <div class="f"><label for="sBz">終了ブザー</label><input type="checkbox" id="sBz"></div>
     <button type="submit" class="done">保存して閉じる</button>
     <p class="note">試合時間・ルールの変更は「次の試合」から反映されます。撮影した映像は端末内のメモリにだけ保持され、どこにも送信されません。長時間撮影するとメモリを多く使うため、1試合ごとに「保存」→「次の試合」で区切るのがおすすめです。</p>
+    <p class="note" id="verInfo">バージョン 12</p>
   </form>
 </div>
 
@@ -471,6 +483,19 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
   </form>
 </div>
 
+<!-- 次の試合へ進む前の保存忘れ警告 -->
+<div class="sheet st tm" id="nx" hidden>
+  <form onsubmit="return false">
+    <h2>前の試合映像を保存しますか？</h2>
+    <div class="nxrow">
+      <button type="button" class="nxyes" id="nxSave">保存する</button>
+      <button type="button" class="nxno" id="nxSkip">保存しない</button>
+    </div>
+    <p class="note">保存しない場合、次の試合の「始め」を押すと、前の試合映像は消えて元に戻せません。</p>
+    <button type="button" class="nxback" id="nxBack">戻る</button>
+  </form>
+</div>
+
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -481,7 +506,7 @@ const LABEL = {ippon:'一本', waza:'技あり', yuko:'有効', shido:'指導', 
 
 /* ---------- settings ---------- */
 const DEF = {nameW:'白', nameB:'青', dur:240, gs:true, yuko:true, awasete:true, oI:20, oW:10, oY:5,
-  overlay:true, audio:true, q:720, buzzer:true, replay:10, facing:'environment', swap:false, color:'blue'};
+  overlay:true, audio:true, q:720, buzzer:true, replay:10, facing:'environment', swap:false, color:'blue', autoRec:true};
 let cfg = (() => { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem('judoScoreCam.cfg') || '{}')); } catch (e) { return Object.assign({}, DEF); } })();
 function saveCfg(){ try { localStorage.setItem('judoScoreCam.cfg', JSON.stringify(cfg)); } catch (e) {} }
 
@@ -573,6 +598,7 @@ function toggleClock(){
     if (!M.gs && M.remain <= 0) return;
     M.osaeHold = null;        // 残していた抑え込み時間は「始め」で消す
     M.running = true;
+    autoRecStart();
     unlockAudio();
   }
 }
@@ -783,6 +809,12 @@ function startDemo(){
 }
 
 function enableRecUI(){ $('btnRec').disabled = false; }
+// 自動録画：各試合の最初の「始め」で録画を始める（抑え込みボタンでは始めない）。「待て」の後の「始め」では何もしない。
+// 試合の途中で手動で止めた場合も、その試合の間は自動では再開しない。
+function autoRecStart(){
+  if (!cfg.autoRec || M.recStarted || !R.src || recNow() != null) return;
+  startRec();
+}
 
 const canvasCapture = () => typeof cv.captureStream === 'function';
 
@@ -940,7 +972,14 @@ function drawOverlay(){
 /* ---------- recording ---------- */
 function pickMime(){
   if (typeof MediaRecorder === 'undefined') return null;
-  const c = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'];
+  const webm = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  const mp4 = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/mp4'];
+  // iPhone / iPad / Mac の Safari は MP4 で録る（写真アプリは WebM を保存できない）
+  const ua = navigator.userAgent;
+  //（iPhone ではどのブラウザも中身は Safari と同じで、vendor が Apple になる）
+  const apple = /^Apple/.test(navigator.vendor || '') || /iP(hone|ad|od)/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const c = apple ? mp4.concat(webm) : webm.concat(mp4);
   for (const m of c) { try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (e) {} }
   return '';
 }
@@ -958,23 +997,29 @@ function startRec(){
   let rec;
   try { rec = new MediaRecorder(new MediaStream(tracks), mime ? {mimeType:mime, videoBitsPerSecond:bps} : {videoBitsPerSecond:bps}); }
   catch (e) { try { rec = new MediaRecorder(new MediaStream(tracks)); } catch (e2) { toast('録画を開始できませんでした'); return; } }
-  R.chunks = []; R.id++;
+  R.chunks = []; R.id++; R.savedLen = 0;
   R.mime = rec.mimeType || mime || 'video/webm';
   rec.ondataavailable = e => { if (e.data && e.data.size) R.chunks.push(e.data); };
   rec.onstop = () => { updateRecUI(); };
   rec.start(1000);
-  R.recorder = rec; R.t0 = performance.now();
+  R.recorder = rec; R.t0 = performance.now(); M.recStarted = true;
   updateRecUI(); renderLog();
   keepAwake();
 }
 
-function stopRec(){
-  if (!R.recorder || R.recorder.state === 'inactive') return;
+// 録画を止める。最後のデータが届くまで待てるように Promise を返す。
+function stopRec(quiet){
+  const r = R.recorder;
+  if (!r || r.state === 'inactive') return Promise.resolve();
+  const done = new Promise(res => { r.addEventListener('stop', () => setTimeout(res, 0), {once:true}); setTimeout(res, 2000); });
   R.stopDur = recNow();
-  R.recorder.stop();
+  r.stop();
   updateRecUI();
-  toast('録画を停止しました。「保存」で端末に保存できます');
+  if (!quiet) toast('録画を停止しました。「保存」で端末に保存できます');
+  return done;
 }
+// 保存していない映像があるか（録画中、または最後に保存した後に撮った分がある）
+function unsavedVideo(){ return R.chunks.length > 0 && (recNow() != null || (R.savedLen || 0) < R.chunks.length); }
 
 function updateRecUI(){
   const on = recNow() != null;
@@ -1069,7 +1114,8 @@ setRate(1);
 function stamp(){ const d = new Date(), p = n => String(n).padStart(2,'0'); return d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()); }
 // 保存は2段階：①映像をまとめる（時間がかかる）→ ②「写真・ファイルに保存」のタップで共有メニューを開く。
 // iPhone はタップから時間がたつと共有メニューを開かせてくれないため、1回のタップでは保存できないことがある。
-let svFile = null, svURL = null;
+let svFile = null, svURL = null, svMark = null;
+function markSaved(){ if (svMark && svMark.id === R.id) R.savedLen = Math.max(R.savedLen || 0, svMark.len); }
 async function saveVideo(){
   const snap = await snapshot();
   if (!snap) { toast('保存する映像がありません'); return; }
@@ -1077,6 +1123,7 @@ async function saveVideo(){
   const ext = type.includes('mp4') ? 'mp4' : 'webm';
   const fn = '柔道_' + name('w') + '対' + name('b') + '_' + stamp() + '.' + ext;
   svFile = new File([snap.blob], fn, {type});
+  svMark = {id: R.id, len: R.chunks.length};   // 保存できたら、ここまで保存済みとして記録する
   if (svURL) URL.revokeObjectURL(svURL);
   svURL = URL.createObjectURL(svFile);
   const dl = $('svDl'); dl.href = svURL; dl.download = fn;
@@ -1087,9 +1134,15 @@ async function saveVideo(){
 }
 $('svShare').onclick = async () => {
   if (!svFile) return;
-  try { await navigator.share({files:[svFile], title:svFile.name}); $('sv').hidden = true; }
-  catch (e) { if (e.name !== 'AbortError') toast('共有メニューを開けませんでした（' + e.name + '）。「ダウンロードで保存」を試してください'); }
+  // ファイルだけを渡す（文字も一緒に渡すと iPhone で「ビデオを保存」が出ないことがある）
+  try { await navigator.share({files:[svFile]}); markSaved(); $('sv').hidden = true; }
+  catch (e) {
+    if (e.name === 'AbortError') return;
+    if (e.name === 'InvalidStateError') toast('前の保存メニューがまだ閉じていません。少し待ってからもう一度押してください');
+    else toast('共有メニューを開けませんでした（' + e.name + '）。「ダウンロードで保存」を試してください');
+  }
 };
+$('svDl').addEventListener('click', () => markSaved());
 $('svDl').addEventListener('click', () => setTimeout(() => toast('ダウンロードしました。ファイルアプリの「ダウンロード」を確認してください'), 300));
 $('svClose').onclick = () => { $('sv').hidden = true; };
 
@@ -1140,10 +1193,11 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 /* ---------- settings sheet ---------- */
 function openSettings(){
   renderCamSetting();
+  { const m = pickMime(); $('verInfo').textContent = 'バージョン 17　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
-  $('sOv').checked = cfg.overlay; $('sAu').checked = cfg.audio; $('sQ').value = String(cfg.q); $('sBz').checked = cfg.buzzer;
+  $('sOv').checked = cfg.overlay; $('sAu').checked = cfg.audio; $('sQ').value = String(cfg.q); $('sBz').checked = cfg.buzzer; $('sAutoRec').checked = cfg.autoRec;
   $('st').hidden = false;
 }
 $('sColor').addEventListener('change', e => {
@@ -1161,7 +1215,7 @@ $('stForm').addEventListener('submit', e => {
     nameB: (nb && nb !== '青' && nb !== '赤') ? nb : (color === 'red' ? '赤' : '青'), dur: +$('sDur').value,
     gs: $('sGs').checked, yuko: $('sYuko').checked, awasete: $('sAwa').checked,
     oI: num('sOI', 20), oW: num('sOW', 10), oY: num('sOY', 5),
-    overlay: $('sOv').checked, audio: $('sAu').checked, q: +$('sQ').value, buzzer: $('sBz').checked, swap: $('sSwap').checked});
+    overlay: $('sOv').checked, audio: $('sAu').checked, q: +$('sQ').value, buzzer: $('sBz').checked, autoRec: $('sAutoRec').checked, swap: $('sSwap').checked});
   saveCfg(); setReplaySec(+$('sRp').value || 10); applyRuleVisibility(); renderLog();
   if (!M.running && !M.result && M.remain === M.dur && !M.gs) { M.dur = M.remain = cfg.dur*1000; }
   $('st').hidden = true;
@@ -1200,16 +1254,32 @@ $('btnCopy').onclick = async () => {
 let newArmed = null;
 function disarmNew(){ clearTimeout(newArmed); newArmed = null; const b = $('btnNew'); b.textContent = '次の試合'; b.classList.remove('armed'); }
 $('btnNew').onclick = () => {
+  // 保存していない試合の映像があれば、2回押しの代わりに警告画面で確認する（自動録画のとき）
+  if (cfg.autoRec && unsavedVideo()) { disarmNew(); $('nx').hidden = false; return; }
   const dirty = M.log.length || M.remain < M.dur || M.gs || M.running;
   if (dirty && !newArmed) {
     const b = $('btnNew'); b.textContent = 'もう一度押す'; b.classList.add('armed');
-    toast('もう一度押すとスコアと時計をリセットします（録画は続きます）');
+    toast(cfg.autoRec ? 'もう一度押すとスコアと時計をリセットし、録画を停止します' : 'もう一度押すとスコアと時計をリセットします（録画は続きます）');
     newArmed = setTimeout(disarmNew, 4000);
     return;
   }
   disarmNew();
-  newMatch(); renderLog(); toast('次の試合の準備ができました');
+  doNextMatch();
 };
+async function doNextMatch(){
+  const wasRec = cfg.autoRec && recNow() != null;
+  if (wasRec) await stopRec(true);
+  newMatch(); renderLog();
+  toast(wasRec ? '録画を停止しました。次の試合の準備ができました' : '次の試合の準備ができました');
+}
+$('nxSave').onclick = async () => {
+  $('nx').hidden = true;
+  if (recNow() != null) await stopRec(true);
+  newMatch(); renderLog();
+  saveVideo();
+};
+$('nxSkip').onclick = () => { $('nx').hidden = true; doNextMatch(); };
+$('nxBack').onclick = () => { $('nx').hidden = true; };   // 試合に戻る（録画もそのまま続く）
 document.querySelectorAll('.side').forEach(sec => sec.addEventListener('click', e => {
   const b = e.target.closest('button[data-a]'); if (!b) return;
   unlockAudio(); award(sec.dataset.side, b.dataset.a);
