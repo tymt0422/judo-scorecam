@@ -74,6 +74,11 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .start .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .pbtn{background:var(--clock);color:#1a1200;font-weight:800;border-radius:999px;padding:12px 22px;font-size:16px}
 .gbtn{background:var(--panel2);border-radius:999px;padding:12px 18px;font-weight:700}
+.start .row.main{flex-wrap:nowrap;width:min(560px,92%)}
+.start .row.main .pbtn{flex:1 1 0;min-width:0;padding:16px 10px;font-size:17px;border-radius:16px;line-height:1.25}
+.start .row.main .pbtn.nc{background:#eef2f8;color:#121826}
+.start .row.main .pbtn small{display:block;font-size:11px;font-weight:700;opacity:.75}
+.start .row.sub .gbtn{padding:8px 14px;font-size:13px}
 .recbadge{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);border-radius:8px;padding:3px 8px;font-size:12px;
   font-variant-numeric:tabular-nums;display:flex;gap:6px;align-items:center}
 .recbadge i{width:8px;height:8px;border-radius:50%;background:var(--red)}
@@ -350,9 +355,11 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
     <button class="vwexit" id="vwExit" aria-label="表示専用を終了">終了</button>
     <div class="recbadge" id="recBadge" hidden><i></i><span id="recTime">00:00</span></div>
     <div class="start" id="startBox">
-      <div class="row">
+      <div class="row main">
         <button class="pbtn" id="btnCam">カメラを起動</button>
-        <button class="gbtn" id="btnNoCam">カメラなしで起動</button>
+        <button class="pbtn nc" id="btnNoCam">カメラなし<small>（時間とスコアのみ）</small></button>
+      </div>
+      <div class="row sub">
         <button class="gbtn" id="btnDemo">デモ映像で試す</button>
         <button class="gbtn" id="btnView">表示専用で起動（iPad）</button>
       </div>
@@ -977,12 +984,12 @@ function drawBoard(C){
   const gap = m*.03, yk = cfg.yuko;
   g.fillStyle = '#05080f'; g.fillRect(0, 0, W, H);
   g.textBaseline = 'middle';
-  // iPad などの表示専用・横向き：上半分に時計、下の左右にスコア、下の中央に抑え込み
-  if (VIEW.on && W > H*1.1) { drawBoardLand(g, W, H, rr, F); return; }
-  const sideW = W*.25, left = document.body.classList.contains('swap') ? 'b' : 'w';
   // 横持ちでは上に設定・取消などのボタンが重なるので、その分だけ下げて描く
   const land = matchMedia('(orientation:landscape) and (min-width:640px)').matches;
   const T = land && !VIEW.on ? 44 * C.height / Math.max(1, $('stage').clientHeight) : 0, HH = H - T;
+  // 横長の画面（iPad・iPhone の横向き）：上半分に時計、下の左右にスコア、下の中央に抑え込み
+  if (W > H*1.1) { drawBoardLand(g, W, H, rr, F, T); return; }
+  const sideW = W*.25, left = document.body.classList.contains('swap') ? 'b' : 'w';
 
   [left, OTHER[left]].forEach((s, i) => {
     const sc = M.score[s];
@@ -1061,14 +1068,17 @@ function drawBoard(C){
   }
 }
 
-// 表示専用（iPad 横向き）のレイアウト
-function drawBoardLand(g, W, H, rr, F){
+// 横長の画面（iPad・iPhone の横向き）のレイアウト。T：上のボタンが重なる分だけ下げる量
+function drawBoardLand(g, W, H0, rr, F, T){
+  T = T || 0;
+  g.save(); g.translate(0, T);
+  const H = H0 - T;
   const m = Math.min(W, H), gap = m*.025, yk = cfg.yuko;
   const left = document.body.classList.contains('swap') ? 'b' : 'w';
   const font = px => '900 ' + Math.round(px) + 'px ' + F;
 
   // 上半分：時計
-  const topH = H*.52, cx = W/2;
+  const topH = H*.66, cx = W/2;
   let resH = 0;
   if (M.result) {
     const t = M.result.winner ? name(M.result.winner) + 'の勝ち（' + M.result.reason + '）' : M.result.reason;
@@ -1081,14 +1091,13 @@ function drawBoardLand(g, W, H, rr, F){
     g.fillStyle = '#03140b'; g.textAlign = 'center'; g.fillText(t, cx, gap + resH/2);
   }
   const clk = M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain);
-  const cf = Math.min(W*.9 / (clk.length*.56), (topH - resH)*.78);
-  const cyc = resH + (topH - resH)*.47;
+  // 「試合中／待て」の文字は出さず、その分時計を大きく（止まっている間は黄色、延長はオレンジ）
+  const cf = Math.min(W*.94 / (clk.length*.56), (topH - resH)*.98);
+  const cyc = resH + (topH - resH)*.53;
   g.textAlign = 'center';
   g.fillStyle = M.gs ? '#ff7a1a' : (M.running && !M.sono ? '#ffffff' : '#ffb21f');
   g.font = '800 ' + Math.round(cf) + 'px ' + F;
   g.fillText(clk, cx, cyc);
-  g.fillStyle = '#8e9bb5'; g.font = '800 ' + Math.round(Math.min(cf*.13, H*.04)) + 'px ' + F;
-  g.fillText(M.sono ? 'そのまま' : M.gs ? 'ゴールデンスコア' : (M.running ? '試合中' : (M.remain < M.dur ? '待て' : '本戦 ' + fmtClock(M.dur))), cx, cyc + cf*.44);
 
   // 下半分：左右に選手、真ん中に抑え込み
   const by = topH + gap*.5, bh = H - by - gap;
@@ -1101,18 +1110,18 @@ function drawBoardLand(g, W, H, rr, F){
     rr(x, y, w, h, m*.03); g.fill();
     if (M.result && M.result.winner === s) { g.strokeStyle = '#2fbf71'; g.lineWidth = m*.02; rr(x, y, w, h, m*.03); g.stroke(); }
     // 名前
-    g.fillStyle = ink; g.textAlign = 'center'; g.font = font(Math.min(h*.15, w*.11));
+    g.fillStyle = ink; g.textAlign = 'center'; g.font = font(Math.min(h*.2, w*.11));
     let nm = name(s); while (g.measureText(nm).width > w*.9 && nm.length > 1) nm = nm.slice(0, -1);
-    g.fillText(nm, x + w/2, y + h*.14);
-    // 技・有・指を横に並べる（ラベル小、数字大）
-    const cols = yk ? 3 : 2, colW = w*.92 / cols, x0 = x + w*.04;
-    const ly = y + h*.36, vy = y + h*.68;
+    g.fillText(nm, x + w/2, y + h*.2);
+    // 「技 0　有 0　指 0」のように1行に横並び（ラベルの右に数字）
+    const cols = yk ? 3 : 2, colW = w*.94 / cols, x0 = x + w*.03;
+    const vy = y + h*.66;
     const colX = c => x0 + colW*(c + .5);
-    const lab = (t, c) => { g.textAlign = 'center'; g.fillStyle = ink; g.globalAlpha = .75; g.font = font(Math.min(h*.12, colW*.4)); g.fillText(t, colX(c), ly); g.globalAlpha = 1; };
-    const val = (v, c) => { g.textAlign = 'center'; g.fillStyle = ink; g.font = font(Math.min(h*.46, colW*.85)); g.fillText(String(v), colX(c), vy); };
+    const lab = (t, c) => { g.textAlign = 'right'; g.fillStyle = ink; g.globalAlpha = .75; g.font = font(Math.min(h*.26, colW*.34)); g.fillText(t, colX(c) - colW*.03, vy); g.globalAlpha = 1; };
+    const val = (v, c) => { g.textAlign = 'left'; g.fillStyle = ink; g.font = font(Math.min(h*.56, colW*.68)); g.fillText(String(v), colX(c) + colW*.02, vy + h*.02); };
     let c = 0;
     if (sc.ippon || (cfg.awasete && sc.waza >= 2)) {
-      const n = yk ? 2 : 1, bx = x0 + colW*.06, bw = colW*n - colW*.12, bhh = h*.5, byy = y + h*.3;
+      const n = yk ? 2 : 1, bx = x0 + colW*.06, bw = colW*n - colW*.12, bhh = h*.5, byy = vy - bhh/2;
       g.fillStyle = '#2fbf71'; rr(bx, byy, bw, bhh, m*.02); g.fill();
       g.fillStyle = '#03140b'; g.textAlign = 'center'; g.font = font(Math.min(bhh*.5, bw*.32));
       g.fillText('一本', bx + bw/2, byy + bhh/2);
@@ -1125,8 +1134,8 @@ function drawBoardLand(g, W, H, rr, F){
     const n = Math.min(sc.shido, 2), hs = sc.hansoku || sc.shido >= 3, k = n + (hs ? 1 : 0);
     if (!k) val(0, c);
     else {
-      const ch = Math.min(h*.36, colW*.8 / (k*.62 + (k - 1)*.15) ), cw = ch*.62;
-      let kx = colX(c) - (k*cw + (k - 1)*ch*.15)/2;
+      const ch = Math.min(h*.42, colW*.5 / (k*.62 + (k - 1)*.15)), cw = ch*.62;
+      let kx = colX(c) + colW*.02;
       g.lineWidth = Math.max(1, m*.004); g.strokeStyle = 'rgba(0,0,0,.4)';
       for (let j = 0; j < n; j++) { g.fillStyle = '#ffd21f'; g.fillRect(kx, vy - ch/2, cw, ch); g.strokeRect(kx, vy - ch/2, cw, ch); kx += cw + ch*.15; }
       if (hs) { g.fillStyle = '#e5383b'; g.fillRect(kx, vy - ch/2, cw, ch); g.strokeRect(kx, vy - ch/2, cw, ch); }
@@ -1155,6 +1164,7 @@ function drawBoardLand(g, W, H, rr, F){
     g.fillStyle = '#4a5878'; g.textAlign = 'center'; g.font = font(Math.min(bh*.1, midW*.11));
     g.fillText('抑え込み', midX + midW/2, by + bh/2);
   }
+  g.restore();
 }
 
 function drawDemo(){
@@ -1505,7 +1515,7 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 /* ---------- settings sheet ---------- */
 function openSettings(){
   renderCamSetting();
-  { const m = pickMime(); $('verInfo').textContent = 'バージョン 26　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
+  { const m = pickMime(); $('verInfo').textContent = 'バージョン 29　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
