@@ -173,6 +173,53 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .log .go{background:var(--panel2);border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700}
 .log .empty{color:var(--muted);font-size:13px;padding:4px 0}
 
+/* 乱取りタイマー */
+.sheet.rt{z-index:30;background:#05080f;gap:8px}
+.rthead{display:flex;align-items:center;justify-content:space-between}
+.rthead h2{color:var(--muted);font-size:15px}
+.rtx{background:var(--panel2);border-radius:10px;padding:8px 16px;font-weight:800}
+.rtmain{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+.rtphase{font-size:clamp(22px,7vmin,64px);font-weight:900;padding:2px 22px;border-radius:999px;background:var(--panel2);color:#eef2f8}
+.rt[data-ph="work"] .rtphase{background:#16a34a;color:#fff}
+.rt[data-ph="rest"] .rtphase{background:#2563eb;color:#fff}
+.rt[data-ph="done"] .rtphase{background:#ffb21f;color:#1a1200}
+.rttime{font-size:min(36vw,46vh);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:#fff}
+.rt[data-ph="rest"] .rttime{color:#7fb0ff}
+.rt.paused .rttime,.rt[data-ph="idle"] .rttime{color:#ffb21f}
+.rt.last .rttime{color:#ff5a4e}
+.rtround{font-size:clamp(16px,5vmin,40px);font-weight:800;color:#cfd6e4}
+.rtring{position:relative;width:240px;height:240px;margin:6px 0;display:flex;align-items:center;justify-content:center;flex:none}
+.rtring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.rtring circle{fill:none;stroke-width:7}
+.rtring .trk{stroke:#1b2436}
+.rtring .bar{stroke:#22c55e;stroke-linecap:round;transition:stroke-dasharray .1s linear}
+.rt[data-ph="rest"] .rtring .bar{stroke:#3b82f6}
+.rt.paused .rtring .bar,.rt[data-ph="done"] .rtring .bar{stroke:#ffb21f}
+.rt.last .rtring .bar{stroke:#ff5a4e}
+.rtring .rttime{position:relative}
+.rtset{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.rtst{display:flex;align-items:center;gap:6px;background:var(--panel);border-radius:12px;padding:6px 8px}
+.rtst span{font-size:13px;color:var(--muted);font-weight:700}
+.rtst i{font-style:normal;font-size:13px;color:var(--muted);font-weight:700}
+.rtst select{-webkit-appearance:none;appearance:none;border:0;border-radius:8px;background:var(--panel2);color:#fff;
+  font-family:inherit;font-weight:800;font-size:18px;line-height:1;font-variant-numeric:tabular-nums;padding:8px 10px;text-align:center;text-align-last:center;min-width:2.6em}
+.rt.running .rtset{display:none}
+.rtctl{display:flex;gap:8px}
+.rtctl button{border-radius:14px;padding:14px 10px;font-weight:900;font-size:18px}
+.rtgo{flex:2;background:#16a34a;color:#fff}
+.rt.running .rtgo{background:#ffb21f;color:#1a1200}
+.rtsub{flex:1;background:var(--panel2)}
+.rtsub:disabled{opacity:.4}
+.rthb{display:flex;gap:6px}
+.sheet.rts{z-index:31;background:#05080f;overflow:auto}
+.rts input[type=range]{width:min(52%,240px);accent-color:#16a34a}
+.rstry{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0}
+.rstry button{flex:1 1 30%;background:var(--panel2);border-radius:10px;padding:12px 6px;font-weight:800}
+@media (orientation:landscape){
+  .rttime{font-size:min(30vw,52vh)}
+  .rtctl button{padding:10px}
+}
+
 /* sheets */
 .sheet{position:fixed;inset:0;background:rgba(3,6,12,.92);z-index:20;display:flex;flex-direction:column;
   padding:max(10px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));gap:10px}
@@ -256,6 +303,30 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
   background:rgba(255,255,255,.08);color:rgba(255,255,255,.45);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;z-index:3}
 #vwCode{font-size:34px;letter-spacing:.15em;text-align:center;background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:8px}
 .ctrlzone{display:flex;flex-direction:column;gap:8px;min-width:0}
+
+/* 縦持ち：白と赤（青）のスコアボタンを左右に並べる。抑え込み時間は試合時間の横に大きく出す */
+@media not all and (orientation:landscape) and (min-width:640px){
+  .app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-auto-flow:row dense;align-content:start}
+  .app > *{grid-column:1 / -1}
+  .app > .side.w{grid-column:1}
+  .app > .side.b{grid-column:2}
+  body.swap .app > .side.w{grid-column:2}
+  body.swap .app > .side.b{grid-column:1}
+  .side{padding:7px;gap:6px}
+  .shead{flex-direction:column;align-items:stretch;gap:2px}
+  .sname{text-align:center;font-size:16px;flex:none}
+  .tally{justify-content:center;gap:8px;flex-wrap:wrap;min-height:30px}
+  .sbtns,.sbtns.noyuko{grid-template-columns:1fr 1fr;gap:5px}
+  .sbtns button{padding:12px 2px;font-size:15px}
+  .sbtns:not(.noyuko) button.h{grid-column:1 / -1}   /* 5つのときは反則負を横いっぱいに */
+  .board .osae{min-width:112px;padding:4px 12px}
+  .board .osae span{font-size:13px}
+  .board .osae b{font-size:clamp(36px,11vw,56px)}
+}
+/* 横持ちでは抑え込み時間は映像・スコアボードの上に大きく出ているので、ボタンの横には出さない */
+@media (orientation:landscape) and (min-width:640px){
+  #osaeBox{display:none!important}
+}
 
 /* landscape: 白 left | camera (max size) + one-row match controls | 青 right (swappable).
    Header and tool buttons float over the top of the camera so the camera gets the full height. */
@@ -366,6 +437,9 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
         <button class="gbtn" id="btnDemo">デモ映像で試す</button>
         <button class="gbtn" id="btnView">タブレット・PCに表示</button>
       </div>
+      <div class="row sub rtrow">
+        <button class="gbtn" id="btnRandori">乱取りタイマー</button>
+      </div>
       <p id="startMsg">撮影しながら時間とスコアを記録し、数秒前の映像をすぐ見返せます。</p>
     </div>
   </div>
@@ -473,6 +547,7 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
 <div class="sheet st" id="st" hidden>
   <form id="stForm">
     <h2>設定</h2>
+    <button type="button" class="cancel" id="stRandori">乱取りタイマーを開く</button>
     <div class="sec">選手</div>
     <div class="f"><label for="sNameW">白の選手名</label><input type="text" id="sNameW" maxlength="16"></div>
     <div class="f"><label for="sColor">色の組み合わせ<small>大会に合わせて選びます</small></label>
@@ -557,6 +632,58 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
   </form>
 </div>
 
+<!-- 乱取りタイマー：乱取り→休憩を決めた本数くり返す -->
+<div class="sheet rt" id="rt" hidden>
+  <div class="rthead"><h2>乱取りタイマー</h2><span class="rthb"><button type="button" class="rtx" id="rtSnd">音の設定</button><button type="button" class="rtx" id="rtExit">終了</button></span></div>
+  <div class="rtmain">
+    <div class="rtphase" id="rtPhase">準備OK</div>
+    <!-- 円の周りが時間とともに進む（上から時計回り） -->
+    <div class="rtring" id="rtRing">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="45"/><circle class="bar" id="rtBar" cx="50" cy="50" r="45" pathLength="100" stroke-dasharray="0 100"/></svg>
+      <div class="rttime" id="rtTime">4:00</div>
+    </div>
+    <div class="rtround" id="rtRound">全5本</div>
+  </div>
+  <div class="rtset" id="rtSet">
+    <!-- 選択欄：iPhone では押すとホイールが出て、フリックで分・秒を選べる -->
+    <div class="rtst"><span>乱取り</span><select id="rtWm" aria-label="乱取りの分"></select><i>分</i><select id="rtWs" aria-label="乱取りの秒"></select><i>秒</i></div>
+    <div class="rtst"><span>休憩</span><select id="rtRm" aria-label="休憩の分"></select><i>分</i><select id="rtRs" aria-label="休憩の秒"></select><i>秒</i></div>
+    <div class="rtst"><span>本数</span><select id="rtN" aria-label="本数"></select><i>本</i></div>
+  </div>
+  <div class="rtctl">
+    <button type="button" class="rtgo" id="rtGo">スタート</button>
+    <button type="button" class="rtsub" id="rtSkip">次へ</button>
+    <button type="button" class="rtsub" id="rtReset">リセット</button>
+  </div>
+</div>
+
+<!-- 乱取りタイマーの音の設定 -->
+<div class="sheet st rts" id="rts" hidden>
+  <form onsubmit="return false">
+    <h2>乱取りタイマーの音</h2>
+    <div class="f"><label for="rsType">音の種類</label>
+      <select id="rsType">
+        <option value="buzzer">柔道ブザー</option>
+        <option value="beep">電子音</option>
+        <option value="bell">ゴング</option>
+        <option value="whistle">笛</option>
+      </select></div>
+    <div class="f"><label for="rsVol">音の大きさ<small id="rsVolTxt">80%</small></label><input type="range" id="rsVol" min="0" max="100" step="5"></div>
+    <div class="f"><label for="rsWarn">残り10秒の合図<small>乱取りの終わり10秒前に短く鳴らす</small></label><input type="checkbox" id="rsWarn"></div>
+    <div class="f"><label for="rsCount">再開前のカウント<small>休憩の残り3秒で 3・2・1 と鳴らす</small></label><input type="checkbox" id="rsCount"></div>
+    <div class="sec">試し聞き</div>
+    <div class="rstry">
+      <button type="button" data-k="work">開始</button>
+      <button type="button" data-k="rest">休憩</button>
+      <button type="button" data-k="done">全部終了</button>
+      <button type="button" data-k="warn">10秒前</button>
+      <button type="button" data-k="tick">3・2・1</button>
+    </div>
+    <button type="button" class="done" id="rsClose">閉じる</button>
+    <p class="note">音が出ないときは、iPhone のマナーモード（横のスイッチ）を解除し、本体の音量ボタンで音量を上げてください。この画面の「音の大きさ」は、本体の音量の範囲内で調整します。</p>
+  </form>
+</div>
+
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -567,7 +694,9 @@ const LABEL = {ippon:'一本', waza:'技あり', yuko:'有効', shido:'指導', 
 
 /* ---------- settings ---------- */
 const DEF = {nameW:'白', nameB:'青', dur:240, gs:true, yuko:true, awasete:true, oI:20, oW:10, oY:5,
-  overlay:true, audio:true, q:720, buzzer:true, replay:10, facing:'environment', swap:false, color:'red', autoRec:true, cfgVer:2};
+  overlay:true, audio:true, q:720, buzzer:true, replay:10, facing:'environment', swap:false, color:'red', autoRec:true, cfgVer:2,
+  rtWork:240, rtRest:60, rtRounds:5,
+  rtSnd:'buzzer', rtVol:80, rtWarn:true, rtCount:true};   // 乱取りタイマーの音：種類・大きさ・合図のオンオフ   // 乱取りタイマー：乱取り・休憩の秒数と本数
 let cfg = (() => {
   try {
     const saved = JSON.parse(localStorage.getItem('judoScoreCam.cfg') || '{}');
@@ -756,9 +885,9 @@ function render(){
   const clkTxt = M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain);
   const rpOpen = !$('rp').hidden;
   for (const [box, lbl, tt, tk, ow, obb] of [['osaeBox','osaeLbl','osaeT','btnToketa','btnOsaeW','btnOsaeB'], ['rpOsae','rpOsaeLbl','rpOsaeT','rpToketa','rpOsaeW','rpOsaeB']]) {
-    // 通常画面のボタン横には抑え込み時間を出さない（映像・スコアボードの上に大きく出ている）。
+    // 通常画面：縦持ちでは試合時間の横に抑え込み時間（解けた後も「始め」まで）を出す。横持ちでは CSS で隠す。
     // リプレイ画面では映像の上に出ないので、抑え込み中だけ表示する。
-    setHidden(box, box === 'osaeBox' || !o); setHidden(tk, !o); setHidden(ow, !!o); setHidden(obb, !!o);
+    setHidden(box, box === 'osaeBox' ? !od : !o); setHidden(tk, !o); setHidden(ow, !!o); setHidden(obb, !!o);
     if (od) {
       const el = $(box); el.classList.toggle('w', od.side==='w'); el.classList.toggle('b', od.side==='b'); el.classList.toggle('held', !!hd);
       setText(lbl, name(od.side) + (hd ? ' 解けた' : ' 抑え込み'));
@@ -1474,15 +1603,206 @@ $('svClose').onclick = () => { $('sv').hidden = true; };
 /* ---------- misc ---------- */
 let ac = null;
 function unlockAudio(){ try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {} }
-function beep(ms, f){
-  if (!cfg.buzzer || !ac) return;
+function beep(ms, f, force){
+  if ((!cfg.buzzer && !force) || !ac) return;
   try { const o = ac.createOscillator(), gn = ac.createGain(); o.type = 'square'; o.frequency.value = f; gn.gain.value = .12;
     o.connect(gn); gn.connect(ac.destination); o.start(); o.stop(ac.currentTime + ms/1000); } catch (e) {}
 }
 async function keepAwake(){
   try { if ('wakeLock' in navigator && !R.wakeLock) { R.wakeLock = await navigator.wakeLock.request('screen'); R.wakeLock.addEventListener('release', () => R.wakeLock = null); } } catch (e) {}
 }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && R.src) keepAwake(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (R.src || !$('rt').hidden)) keepAwake(); });
+
+/* ---------- 乱取りタイマー ---------- */
+// 乱取り（rtWork 秒）→ 休憩（rtRest 秒）を rtRounds 本くり返す。
+// 終了時刻で管理するので、画面が一瞬止まっても時間はずれない（戻ったときに追いつく）
+const RT = {ph:'idle', round:1, end:0, left:0, running:false, iv:null, lastSec:null, exitArm:0};
+const fmtMS = s => Math.floor(s/60) + ':' + String(s%60).padStart(2, '0');
+const rtDur = ph => (ph === 'work' ? cfg.rtWork : cfg.rtRest) * 1000;
+// ---- 乱取りタイマーの音：種類（rtSnd）ごとに合成し、音の大きさ（rtVol）をかける ----
+let rtOut = null;
+function rtDest(){
+  if (!ac) return null;
+  if (!rtOut) {
+    // 大きめの音でも割れないよう、最後にコンプレッサーを通す
+    const comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -12; comp.knee.value = 6; comp.ratio.value = 8;
+    comp.connect(ac.destination);
+    rtOut = ac.createGain(); rtOut.connect(comp);
+  }
+  rtOut.gain.value = cfg.rtVol / 100;
+  return rtOut;
+}
+// 1つの音。oscs：[[波形, 周波数, ビブラート[速さ, 幅]]]、at：何秒後に鳴らすか、dur：長さ
+// o.decay：鐘のように減衰させる　o.lp：高い成分を削る（こもった音にする）　o.g：音量
+function rtTone(oscs, at, dur, o){
+  o = o || {};
+  const out = rtDest(); if (!out) return;
+  try {
+    const t0 = ac.currentTime + at, g = ac.createGain(), peak = o.g || .3;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(peak, t0 + (o.att || .01));
+    if (o.decay) g.gain.exponentialRampToValueAtTime(.0005, t0 + dur);
+    else { g.gain.setValueAtTime(peak, t0 + Math.max(.02, dur - .03)); g.gain.linearRampToValueAtTime(0, t0 + dur); }
+    let node = g;
+    if (o.lp) { const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; g.connect(f); node = f; }
+    node.connect(out);
+    oscs.forEach(([type, freq, vib]) => {
+      const osc = ac.createOscillator(); osc.type = type; osc.frequency.value = freq;
+      if (vib) { const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = vib[0]; lg.gain.value = vib[1];
+        l.connect(lg); lg.connect(osc.frequency); l.start(t0); l.stop(t0 + dur + .05); }
+      osc.connect(g); osc.start(t0); osc.stop(t0 + dur + .05);
+    });
+  } catch (e) {}
+}
+// kind：work 乱取り開始／rest 休憩／done 全部終了／warn 残り10秒／tick 再開前の3・2・1
+function rtSound(kind){
+  if (!ac || !cfg.rtVol) return;
+  const t = cfg.rtSnd;
+  if (t === 'buzzer') {
+    // 試合場の得点板のような、低く濁った「ブー」
+    const B = (at, d) => rtTone([['sawtooth', 165], ['square', 220], ['sawtooth', 247.5]], at, d, {g:.2, lp:2600});
+    ({work:() => B(0, 1), rest:() => B(0, 1.6), done:() => B(0, 2.6), warn:() => B(0, .35), tick:() => B(0, .15)})[kind]();
+  } else if (t === 'bell') {
+    // ゴング「カーン」（倍音を重ねて減衰）
+    const G = (at, d, f) => rtTone([['sine', f], ['sine', f * 2.76], ['sine', f * 5.4]], at, d, {g:.16, decay:true, att:.005});
+    ({work:() => G(0, 2.5, 523), rest:() => { G(0, 2, 392); G(.6, 2.2, 392); },
+      done:() => { G(0, 1.6, 392); G(.6, 1.6, 392); G(1.2, 3, 392); }, warn:() => G(0, 1.2, 784), tick:() => G(0, .5, 1046)})[kind]();
+  } else if (t === 'whistle') {
+    // 笛「ピー」（少し揺らす）
+    const W = (at, d) => rtTone([['sine', 2900, [28, 90]]], at, d, {g:.28, att:.03});
+    ({work:() => W(0, .8), rest:() => { W(0, .3); W(.45, .3); }, done:() => W(0, 1.8), warn:() => W(0, .18), tick:() => W(0, .1)})[kind]();
+  } else {
+    // 電子音「ピッ」
+    const P = (at, d, f) => rtTone([['square', f]], at, d, {g:.16});
+    ({work:() => P(0, .7, 1046), rest:() => P(0, 1.2, 440), done:() => { P(0, .9, 440); P(1.1, .9, 440); P(2.2, 1.4, 440); },
+      warn:() => P(0, .15, 660), tick:() => P(0, .12, 880)})[kind]();
+  }
+}
+const rtBuzz = kind => rtSound(kind);
+
+// 音の設定画面
+function rsSync(){
+  $('rsType').value = cfg.rtSnd; $('rsVol').value = cfg.rtVol; $('rsVolTxt').textContent = cfg.rtVol + '%';
+  $('rsWarn').checked = cfg.rtWarn; $('rsCount').checked = cfg.rtCount;
+}
+$('rtSnd').onclick = () => { unlockAudio(); rsSync(); $('rts').hidden = false; };
+$('rsClose').onclick = () => { $('rts').hidden = true; };
+$('rsType').onchange = () => { cfg.rtSnd = $('rsType').value; saveCfg(); unlockAudio(); rtSound('work'); };
+$('rsVol').oninput = () => { cfg.rtVol = +$('rsVol').value; $('rsVolTxt').textContent = cfg.rtVol + '%'; };
+$('rsVol').onchange = () => { saveCfg(); unlockAudio(); rtSound('warn'); };
+$('rsWarn').onchange = () => { cfg.rtWarn = $('rsWarn').checked; saveCfg(); };
+$('rsCount').onchange = () => { cfg.rtCount = $('rsCount').checked; saveCfg(); };
+document.querySelectorAll('.rstry button').forEach(b => b.onclick = () => { unlockAudio(); rtSound(b.dataset.k); });
+// 今のフェーズが時刻 at に終わったとして次へ進める
+function rtNext(at){
+  if (RT.ph === 'work') {
+    if (RT.round >= cfg.rtRounds) { RT.ph = 'done'; RT.running = false; RT.left = 0; rtBuzz('done'); return; }
+    if (cfg.rtRest > 0) { RT.ph = 'rest'; rtBuzz('rest'); }
+    else { RT.round++; rtBuzz('work'); }
+  } else if (RT.ph === 'rest') { RT.ph = 'work'; RT.round++; rtBuzz('work'); }
+  RT.end = at + rtDur(RT.ph); RT.left = rtDur(RT.ph); RT.lastSec = null;
+}
+function rtTick(){
+  if (RT.running) {
+    const now = performance.now();
+    for (let i = 0; i < 200 && RT.running && RT.end <= now; i++) rtNext(RT.end);
+    if (RT.running) {
+      const s = Math.ceil((RT.end - now) / 1000);
+      if (s !== RT.lastSec) {
+        if (RT.lastSec !== null) {
+          if (cfg.rtCount && RT.ph === 'rest' && s >= 1 && s <= 3) rtSound('tick');                  // 再開まで3・2・1
+          if (cfg.rtWarn && RT.ph === 'work' && s === 10 && cfg.rtWork > 20) rtSound('warn');        // 残り10秒の合図
+        }
+        RT.lastSec = s;
+      }
+    }
+  }
+  rtRender();
+}
+function rtRender(){
+  const el = $('rt'), act = RT.ph === 'work' || RT.ph === 'rest';
+  const ms = RT.running ? Math.max(0, RT.end - performance.now()) : RT.left;
+  const s = Math.ceil(ms / 1000);
+  el.dataset.ph = RT.ph;
+  el.classList.toggle('running', RT.running);
+  el.classList.toggle('paused', !RT.running && act);
+  el.classList.toggle('last', RT.running && RT.ph === 'work' && s <= 10);
+  $('rtTime').textContent = fmtMS(RT.ph === 'idle' ? cfg.rtWork : RT.ph === 'done' ? 0 : s);
+  // 円の進み具合：今の乱取り・休憩のうち経過した割合（終了は一周）
+  const full = act ? rtDur(RT.ph) : 0;
+  const p = RT.ph === 'done' ? 100 : full ? Math.min(100, Math.max(0, (1 - ms / full) * 100)) : 0;
+  $('rtBar').setAttribute('stroke-dasharray', p.toFixed(2) + ' 100');
+  rtSize();
+  $('rtPhase').textContent = {idle:'準備OK', work:'乱取り', rest:'休憩', done:'終了'}[RT.ph] + (!RT.running && act ? '（一時停止）' : '');
+  $('rtRound').textContent = RT.ph === 'idle' ? '全' + cfg.rtRounds + '本'
+    : RT.ph === 'done' ? 'お疲れさまでした（全' + cfg.rtRounds + '本）'
+    : RT.round + '本目 / 全' + cfg.rtRounds + '本' + (RT.ph === 'rest' ? '　次は' + (RT.round + 1) + '本目' : '');
+  $('rtGo').textContent = RT.running ? '一時停止' : RT.ph === 'idle' ? 'スタート' : RT.ph === 'done' ? 'もう一度' : '再開';
+  $('rtSkip').disabled = !act;
+  rtSyncSel();
+  if (RT.exitArm && performance.now() > RT.exitArm) { RT.exitArm = 0; $('rtExit').textContent = '終了'; }
+}
+// 円の大きさは空いている場所いっぱいに合わせ、時間の文字は円の内側に収まる大きさにする
+let rtSizeKey = '';
+function rtSize(){
+  const main = $('rt').querySelector('.rtmain'), ring = $('rtRing');
+  const free = main.clientHeight - $('rtPhase').offsetHeight - $('rtRound').offsetHeight - 16;
+  const d = Math.max(120, Math.floor(Math.min(main.clientWidth * .92, free)));
+  const len = $('rtTime').textContent.length, key = d + ':' + len;
+  if (key === rtSizeKey) return;
+  rtSizeKey = key;
+  ring.style.width = ring.style.height = d + 'px';
+  $('rtTime').style.fontSize = Math.floor(d * .78 / (len * .58)) + 'px';
+}
+function rtReset(){ Object.assign(RT, {ph:'idle', round:1, running:false, left:0, lastSec:null}); rtRender(); }
+function openRandori(){
+  unlockAudio(); keepAwake();
+  $('rt').hidden = false; rtReset();
+  clearInterval(RT.iv); RT.iv = setInterval(rtTick, 100);
+}
+$('rtGo').onclick = () => {
+  unlockAudio();
+  const now = performance.now();
+  if (RT.running) { RT.left = Math.max(0, RT.end - now); RT.running = false; }
+  else if (RT.ph === 'idle' || RT.ph === 'done') { Object.assign(RT, {ph:'work', round:1, running:true, end:now + rtDur('work'), lastSec:null}); rtBuzz('work'); }
+  else { RT.end = now + RT.left; RT.running = true; }
+  rtRender();
+};
+$('rtSkip').onclick = () => {
+  if (RT.ph !== 'work' && RT.ph !== 'rest') return;
+  rtNext(performance.now()); rtRender();
+};
+$('rtReset').onclick = rtReset;
+// 分・秒・本数の選択欄（分は乱取り0〜20分・休憩0〜10分、秒は0〜59秒、本数は1〜30本）
+function rtFill(id, from, to, pad){
+  const s = $(id);
+  for (let v = from; v <= to; v++) { const o = document.createElement('option'); o.value = v; o.textContent = pad ? String(v).padStart(2, '0') : v; s.appendChild(o); }
+}
+rtFill('rtWm', 0, 20); rtFill('rtWs', 0, 59, true);
+rtFill('rtRm', 0, 10); rtFill('rtRs', 0, 59, true);
+rtFill('rtN', 1, 30);
+function rtSyncSel(){
+  const set = (id, v) => { const s = $(id); if (document.activeElement !== s && s.value !== String(v)) s.value = String(v); };
+  set('rtWm', Math.floor(cfg.rtWork / 60)); set('rtWs', cfg.rtWork % 60);
+  set('rtRm', Math.floor(cfg.rtRest / 60)); set('rtRs', cfg.rtRest % 60);
+  set('rtN', cfg.rtRounds);
+}
+function rtFromSel(){
+  cfg.rtWork = Math.max(5, +$('rtWm').value * 60 + +$('rtWs').value);   // 乱取りは最低5秒
+  cfg.rtRest = +$('rtRm').value * 60 + +$('rtRs').value;               // 休憩は0秒（なし）でもよい
+  cfg.rtRounds = +$('rtN').value;
+  saveCfg(); rtRender();
+}
+['rtWm', 'rtWs', 'rtRm', 'rtRs', 'rtN'].forEach(id => $(id).addEventListener('change', rtFromSel));
+// 終了は誤って押さないよう、動いている間は2回押しで閉じる
+$('rtExit').onclick = () => {
+  if (RT.running && !RT.exitArm) { RT.exitArm = performance.now() + 3000; $('rtExit').textContent = 'もう一度押すと終了'; return; }
+  RT.exitArm = 0; $('rtExit').textContent = '終了';
+  clearInterval(RT.iv); RT.iv = null; rtReset(); $('rt').hidden = true;
+};
+$('btnRandori').onclick = openRandori;
+$('stRandori').onclick = () => { $('st').hidden = true; openRandori(); };
 
 let toastT;
 function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
@@ -1518,7 +1838,7 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 /* ---------- settings sheet ---------- */
 function openSettings(){
   renderCamSetting();
-  { const m = pickMime(); $('verInfo').textContent = 'バージョン 35　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
+  { const m = pickMime(); $('verInfo').textContent = 'バージョン 40　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
