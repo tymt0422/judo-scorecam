@@ -70,7 +70,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .stage video.src{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   background:radial-gradient(circle at 50% 40%,#1b2a4a,#070b14);text-align:center;padding:12px}
-.start p{margin:0;color:var(--muted);font-size:13px;max-width:30em}
+.start p{margin:0;color:var(--muted);font-size:min(13px,2.8vw);max-width:calc(100% - 16px)}
 .start .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .pbtn{background:var(--clock);color:#1a1200;font-weight:800;border-radius:999px;padding:12px 22px;font-size:16px}
 .gbtn{background:var(--panel2);border-radius:999px;padding:12px 18px;font-weight:700}
@@ -78,7 +78,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .start .row.main .pbtn{flex:1 1 0;min-width:0;padding:16px 10px;font-size:17px;border-radius:16px;line-height:1.25}
 .start .row.main .pbtn.nc{background:#eef2f8;color:#121826}
 .start .row.main .pbtn small{display:block;font-size:11px;font-weight:700;opacity:.75}
-.start .row.sub .gbtn{padding:8px 14px;font-size:13px}
+.start .row.sub{flex-wrap:nowrap;width:min(400px,84%)}
+.start .row.sub .gbtn{flex:1 1 0;min-width:0;padding:8px 4px;white-space:nowrap;font-size:12px;font-weight:900;line-height:1.3;
+  border-radius:12px;background:#b8c1cf;color:#121826}
 .recbadge{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);border-radius:8px;padding:3px 8px;font-size:12px;
   font-variant-numeric:tabular-nums;display:flex;gap:6px;align-items:center}
 .recbadge i{width:8px;height:8px;border-radius:50%;background:var(--red)}
@@ -287,7 +289,7 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
   .top #btnBoard{background:rgba(45,63,99,.85)}
   .log{display:none}
   .stage{grid-area:stage;max-height:none;height:100%;aspect-ratio:auto;min-height:0;border-radius:10px}
-  .recbadge{top:auto;left:auto;bottom:8px;right:8px}
+  .recbadge{top:44px;left:8px}   /* 左上の「録画・保存」などのボタンのすぐ下 */
   .lkbadge{top:44px}   /* 右上の「訂正・次の試合」などのボタンのすぐ下 */
   .banner{grid-area:stage;align-self:start;justify-self:center;margin-top:44px;z-index:3;font-size:14px;padding:5px 12px;max-width:calc(100% - 16px)}
   .side.w{grid-area:w}
@@ -362,9 +364,9 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
       </div>
       <div class="row sub">
         <button class="gbtn" id="btnDemo">デモ映像で試す</button>
-        <button class="gbtn" id="btnView">表示専用で起動（iPad）</button>
+        <button class="gbtn" id="btnView">タブレット・PCに表示</button>
       </div>
-      <p id="startMsg">撮影しながら試合時間とスコアを記録し、数秒前の映像をすぐに見返せます。</p>
+      <p id="startMsg">撮影しながら時間とスコアを記録し、数秒前の映像をすぐ見返せます。</p>
     </div>
   </div>
 
@@ -480,7 +482,7 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
     <div class="sec">iPad などにスコアを表示</div>
     <div class="f lk"><label>番号<small id="lkState">停止中</small></label><b class="lkcode off" id="lkCode">------</b></div>
     <button type="button" class="done lkbtn" id="lkBtn">送信を開始</button>
-    <p class="note">iPad でもこのアプリを開き、最初の画面の「表示専用で起動（iPad）」を押して上の番号を入力すると、時間・スコア・抑え込み時間が大きく表示されます。両方の端末がインターネットにつながっている必要があります。送る内容（時間・スコア・選手名）は公開の中継サーバーを通るため、番号を知っている人は見ることができます。</p>
+    <p class="note">タブレットやパソコンでもこのアプリを開き、最初の画面の「タブレット・PCに表示」を押して上の番号を入力すると、時間・スコア・抑え込み時間が大きく表示されます。両方の端末がインターネットにつながっている必要があります。送る内容（時間・スコア・選手名）は公開の中継サーバーを通るため、番号を知っている人は見ることができます。</p>
     <div class="sec">試合ルール</div>
     <div class="f"><label for="sDur">試合時間</label>
       <select id="sDur"><option value="60">1分</option><option value="90">1分30秒</option><option value="120">2分</option><option value="150">2分30秒</option><option value="180">3分</option><option value="240">4分</option><option value="300">5分</option></select></div>
@@ -534,7 +536,7 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
 <!-- 表示専用（iPad）：番号の入力 -->
 <div class="sheet st tm" id="vw" hidden>
   <form onsubmit="return false">
-    <h2>表示専用で起動</h2>
+    <h2>タブレット・PCに表示</h2>
     <p class="note">撮影している iPhone の「設定」→「iPad などにスコアを表示」で「送信を開始」を押し、表示された6桁の番号を入力してください。</p>
     <div class="tmrow"><input type="text" id="vwCode" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="6桁の番号" placeholder="000000" style="width:6.5em"></div>
     <button type="button" class="done" id="vwGo">接続して表示</button>
@@ -1516,7 +1518,7 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 /* ---------- settings sheet ---------- */
 function openSettings(){
   renderCamSetting();
-  { const m = pickMime(); $('verInfo').textContent = 'バージョン 30　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
+  { const m = pickMime(); $('verInfo').textContent = 'バージョン 35　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
@@ -1728,7 +1730,7 @@ function renderLinkUI(){
   const on = !!LINK.code, n = LINK.clients.filter(c => c.ready).length;
   $('lkCode').textContent = on ? LINK.code : '------';
   $('lkCode').classList.toggle('off', !on);
-  $('lkState').textContent = on ? (n ? '送信中です。iPad で「表示専用で起動」を押し、この番号を入力してください' : '中継サーバーに接続しています…（インターネットが必要です）') : '停止中';
+  $('lkState').textContent = on ? (n ? '送信中です。タブレットやパソコンで「タブレット・PCに表示」を押し、この番号を入力してください' : '中継サーバーに接続しています…（インターネットが必要です）') : '停止中';
   $('lkBtn').textContent = on ? '送信を停止' : '送信を開始';
   $('lkBadge').hidden = !on;
   $('lkBadge').textContent = (n ? '● ' : '○ ') + 'iPad表示 ' + (on ? LINK.code : '');
