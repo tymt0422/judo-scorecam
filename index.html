@@ -242,7 +242,7 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 
 body.nocam #btnRec,body.nocam #btnSave{display:none}   /* カメラなしでは録画・保存は使わない */
 /* iPad などへの表示 */
-.lkbadge{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#9fe8bf;border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;z-index:2;pointer-events:none}
+.lkbadge{position:absolute;right:8px;top:8px;background:rgba(0,0,0,.6);color:#9fe8bf;border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;z-index:2;pointer-events:none}
 .st .lkcode{font-size:30px;font-weight:900;letter-spacing:.12em;color:var(--clock);font-variant-numeric:tabular-nums}
 .st .lkcode.off{color:var(--muted);opacity:.5}
 .st .lkbtn{margin-top:8px}
@@ -288,6 +288,7 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
   .log{display:none}
   .stage{grid-area:stage;max-height:none;height:100%;aspect-ratio:auto;min-height:0;border-radius:10px}
   .recbadge{top:auto;left:auto;bottom:8px;right:8px}
+  .lkbadge{top:44px}   /* 右上の「訂正・次の試合」などのボタンのすぐ下 */
   .banner{grid-area:stage;align-self:start;justify-self:center;margin-top:44px;z-index:3;font-size:14px;padding:5px 12px;max-width:calc(100% - 16px)}
   .side.w{grid-area:w}
   .side.b{grid-area:b}
@@ -420,7 +421,7 @@ body.viewer .vwexit{display:block;position:absolute;right:max(10px,env(safe-area
     </section>
 
     <div class="tools">
-      <button id="btnUndo">取消</button>
+      <button id="btnUndo">訂正</button>
       <button id="btnTime">時間修正</button>
       <button id="btnCopy">記録コピー</button>
       <button id="btnNew">次の試合</button>
@@ -600,7 +601,7 @@ function snapshotState(){ return JSON.stringify({score:M.score, result:M.result,
 function pushHist(){ M.hist.push(snapshotState()); if (M.hist.length > 100) M.hist.shift(); }
 function undo(){
   const h = M.hist.pop();
-  if (!h) { toast('取り消す操作がありません'); return; }
+  if (!h) { toast('訂正する操作がありません'); return; }
   const o = JSON.parse(h);
   M.score = o.score; M.result = o.result; M.log = o.log; M.gs = o.gs;
   renderLog(); toast('1つ前に戻しました');
@@ -624,7 +625,7 @@ function leadReason(s){
 }
 
 function award(side, type, note, replace){
-  if (M.result) { toast('試合は終了しています（取消で戻せます）'); return; }
+  if (M.result) { toast('試合は終了しています（訂正で戻せます）'); return; }
   pushHist();
   const sc = M.score[side];
   if (replace && sc[replace] > 0) sc[replace]--;   // 抑え込みの格上げ（有効→技あり→一本）
@@ -984,7 +985,7 @@ function drawBoard(C){
   const gap = m*.03, yk = cfg.yuko;
   g.fillStyle = '#05080f'; g.fillRect(0, 0, W, H);
   g.textBaseline = 'middle';
-  // 横持ちでは上に設定・取消などのボタンが重なるので、その分だけ下げて描く
+  // 横持ちでは上に設定・訂正などのボタンが重なるので、その分だけ下げて描く
   const land = matchMedia('(orientation:landscape) and (min-width:640px)').matches;
   const T = land && !VIEW.on ? 44 * C.height / Math.max(1, $('stage').clientHeight) : 0, HH = H - T;
   // 横長の画面（iPad・iPhone の横向き）：上半分に時計、下の左右にスコア、下の中央に抑え込み
@@ -1515,7 +1516,7 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 /* ---------- settings sheet ---------- */
 function openSettings(){
   renderCamSetting();
-  { const m = pickMime(); $('verInfo').textContent = 'バージョン 29　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
+  { const m = pickMime(); $('verInfo').textContent = 'バージョン 30　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
