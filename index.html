@@ -174,49 +174,95 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .log .empty{color:var(--muted);font-size:13px;padding:4px 0}
 
 /* 乱取りタイマー */
-.sheet.rt{z-index:30;background:#05080f;gap:8px}
+/* 状態ごとの色：--c1/--c2 リングの色、--bg 背景の光、--tc 数字の色 */
+.sheet.rt{z-index:30;gap:10px;--c1:#ffd166;--c2:#ff9f1c;--bg:rgba(255,178,31,.13);--tc:#ffe2a3;
+  background:radial-gradient(120% 70% at 50% 40%,var(--bg) 0%,rgba(5,8,15,0) 60%),#04060b}
+.rt[data-ph="work"]{--c1:#5cf59a;--c2:#12b76a;--bg:rgba(34,197,94,.16);--tc:#fff}
+.rt[data-ph="rest"]{--c1:#7cc0ff;--c2:#3b6cf6;--bg:rgba(59,130,246,.17);--tc:#d6e8ff}
+.rt.paused,.rt[data-ph="done"]{--c1:#ffd166;--c2:#ff9f1c;--bg:rgba(255,178,31,.13);--tc:#ffe2a3}
+.rt.last{--c1:#ff7a6b;--c2:#e5173f;--bg:rgba(255,60,60,.2);--tc:#ff8f84}
+.rt[data-ph="idle"]{--bg:rgba(120,150,200,.09)}
+/* 乱取りと休憩の2つの円（横持ちは横並び、縦持ちは縦並び）。今動いている方を明るく、もう一方は暗く */
+.rtpair{display:flex;align-items:center;justify-content:center}
+.rtpair.col{flex-direction:column}
+.rtcard{--c1:#5cf59a;--c2:#12b76a;--tc:#fff;cursor:pointer;transition:opacity .3s}
+.rtcard[data-k="rest"]{--c1:#7cc0ff;--c2:#3b6cf6;--tc:#d6e8ff}
+.rt.paused .rtcard.on,.rt[data-ph="done"] .rtcard.on{--c1:#ffd166;--c2:#ff9f1c;--tc:#ffe2a3}
+.rt.last .rtcard.on{--c1:#ff7a6b;--c2:#e5173f;--tc:#ff8f84}
+.rtcard.dim{opacity:.32}
+.rthint{color:#8a94a8;font-weight:700;letter-spacing:.08em;white-space:nowrap}
+.rt.running .rthint{visibility:hidden}
+/* 時間・本数を選ぶホイール */
+.rtp{position:fixed;inset:0;z-index:32;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.rtp[hidden]{display:none}
+.rtpbox{width:min(100%,460px);background:#0d1320;border:1px solid rgba(255,255,255,.08);border-radius:22px 22px 0 0;
+  padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.5)}
+@media (orientation:landscape){ .rtp{align-items:center} .rtpbox{border-radius:22px;padding-bottom:16px} }
+.rtpbox h3{text-align:center;font-size:15px;color:#aab3c5;letter-spacing:.12em;margin:0 0 8px}
+.rtpwheels{position:relative;display:flex;justify-content:center;align-items:center;gap:4px}
+.rtpwheels::before{content:"";position:absolute;left:8px;right:8px;top:50%;height:46px;margin-top:-23px;border-radius:12px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);pointer-events:none}
+.rtw{position:relative;height:230px;width:88px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent)}
+.rtw::-webkit-scrollbar{display:none}
+.rtw div{height:46px;line-height:46px;text-align:center;scroll-snap-align:center;font-family:"DIN Alternate","Bahnschrift",inherit;
+  font-weight:700;font-size:26px;color:#6b7487;font-variant-numeric:tabular-nums}
+.rtw div.sel{color:#fff;font-size:32px}
+.rtw .pad{height:92px;scroll-snap-align:none}
+.rtpu{font-weight:800;color:#aab3c5;font-size:15px;margin-right:6px}
+.rtpbtn{display:flex;gap:8px;margin-top:12px}
+.rtpbtn button{flex:1;border-radius:999px;padding:14px;font-weight:900;font-size:17px;letter-spacing:.08em}
+#rtpCancel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#d9dfeb}
+#rtpOk{background:linear-gradient(135deg,#5cf59a,#12b76a);color:#03170b}
 .rthead{display:flex;align-items:center;justify-content:space-between}
-.rthead h2{color:var(--muted);font-size:15px}
-.rtx{background:var(--panel2);border-radius:10px;padding:8px 16px;font-weight:800}
-.rtmain{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
-.rtphase{font-size:clamp(22px,7vmin,64px);font-weight:900;padding:2px 22px;border-radius:999px;background:var(--panel2);color:#eef2f8}
-.rt[data-ph="work"] .rtphase{background:#16a34a;color:#fff}
-.rt[data-ph="rest"] .rtphase{background:#2563eb;color:#fff}
-.rt[data-ph="done"] .rtphase{background:#ffb21f;color:#1a1200}
-.rttime{font-size:min(36vw,46vh);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:#fff}
-.rt[data-ph="rest"] .rttime{color:#7fb0ff}
-.rt.paused .rttime,.rt[data-ph="idle"] .rttime{color:#ffb21f}
-.rt.last .rttime{color:#ff5a4e}
-.rtround{font-size:clamp(16px,5vmin,40px);font-weight:800;color:#cfd6e4}
-.rtring{position:relative;width:240px;height:240px;margin:6px 0;display:flex;align-items:center;justify-content:center;flex:none}
-.rtring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
-.rtring circle{fill:none;stroke-width:7}
-.rtring .trk{stroke:#1b2436}
-.rtring .bar{stroke:#22c55e;stroke-linecap:round;transition:stroke-dasharray .1s linear}
-.rt[data-ph="rest"] .rtring .bar{stroke:#3b82f6}
-.rt.paused .rtring .bar,.rt[data-ph="done"] .rtring .bar{stroke:#ffb21f}
-.rt.last .rtring .bar{stroke:#ff5a4e}
-.rtring .rttime{position:relative}
+.rthead h2{color:#8a94a8;font-size:13px;letter-spacing:.18em;font-weight:800}
+.rtx{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:7px 14px;font-weight:800;font-size:13px;color:#d9dfeb}
+.rtmain{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.rtring{position:relative;width:240px;height:240px;display:flex;align-items:center;justify-content:center;flex:none}
+.rtring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible;
+  filter:drop-shadow(0 0 10px var(--c2))}
+.rt.last.running .rtcard.on svg{animation:rtpulse 1s ease-in-out infinite}
+@keyframes rtpulse{50%{filter:drop-shadow(0 0 26px var(--c1))}}
+.rtring circle{fill:none}
+.rtring .trk{stroke:rgba(255,255,255,.06);stroke-width:5}
+.rtring .bar{stroke:url(#rtGrad);stroke-width:5;stroke-linecap:round;transition:stroke-dasharray .1s linear}
+.rtring .dot{fill:#fff;stroke:var(--c1);stroke-width:1.2}
+.rtring stop.a{stop-color:var(--c2)}.rtring stop.b{stop-color:var(--c1)}
+.rtring .tk{stroke:rgba(255,255,255,.13);stroke-width:.6;stroke-linecap:round}
+.rtring .tk.mj{stroke:rgba(255,255,255,.3);stroke-width:1}
+.rtring .tk.on{stroke:var(--c1)}
+.rtin{position:relative;display:flex;flex-direction:column;align-items:center;line-height:1}
+.rtphase{font-weight:900;letter-spacing:.2em;color:var(--c1);white-space:nowrap;margin-right:-.2em}
+.rttime{font-family:"DIN Alternate","Bahnschrift","DIN Condensed","Roboto Condensed","Helvetica Neue",sans-serif;
+  font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em;color:var(--tc);
+  text-shadow:0 0 28px color-mix(in srgb,var(--c1) 45%,transparent)}
+.rtdots{display:flex;gap:.55em;justify-content:center}
+.rtdots i{width:1em;height:1em;border-radius:50%;background:rgba(255,255,255,.14)}
+.rtdots i.ok{background:var(--c1);box-shadow:0 0 8px var(--c1)}
+.rtdots i.now{background:transparent;box-shadow:inset 0 0 0 2px var(--c1)}
+.rtround{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:clamp(14px,4vmin,26px);font-weight:800;color:#aab3c5;letter-spacing:.06em;
+  background:none;border:0;padding:4px 14px;border-radius:999px}
+.rtround .rtdots{font-size:9px}
+.rt:not(.running) .rtround span{border-bottom:1px dashed rgba(255,255,255,.3)}
 .rtset{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.rtst{display:flex;align-items:center;gap:6px;background:var(--panel);border-radius:12px;padding:6px 8px}
-.rtst span{font-size:13px;color:var(--muted);font-weight:700}
-.rtst i{font-style:normal;font-size:13px;color:var(--muted);font-weight:700}
-.rtst select{-webkit-appearance:none;appearance:none;border:0;border-radius:8px;background:var(--panel2);color:#fff;
-  font-family:inherit;font-weight:800;font-size:18px;line-height:1;font-variant-numeric:tabular-nums;padding:8px 10px;text-align:center;text-align-last:center;min-width:2.6em}
+.rtst{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:6px 8px}
+.rtst span{font-size:12px;color:#8a94a8;font-weight:800;letter-spacing:.08em}
+.rtst i{font-style:normal;font-size:12px;color:#8a94a8;font-weight:700}
+.rtst select{-webkit-appearance:none;appearance:none;border:0;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;
+  font-family:"DIN Alternate","Bahnschrift",inherit;font-weight:700;font-size:19px;line-height:1;font-variant-numeric:tabular-nums;padding:8px 10px;text-align:center;text-align-last:center;min-width:2.6em}
 .rt.running .rtset{display:none}
 .rtctl{display:flex;gap:8px}
-.rtctl button{border-radius:14px;padding:14px 10px;font-weight:900;font-size:18px}
-.rtgo{flex:2;background:#16a34a;color:#fff}
-.rt.running .rtgo{background:#ffb21f;color:#1a1200}
-.rtsub{flex:1;background:var(--panel2)}
-.rtsub:disabled{opacity:.4}
+.rtctl button{border-radius:999px;padding:15px 10px;font-weight:900;font-size:18px;letter-spacing:.08em}
+.rtgo{flex:2;background:linear-gradient(135deg,#5cf59a,#12b76a);color:#03170b;box-shadow:0 8px 28px rgba(18,183,106,.35)}
+.rt.running .rtgo{background:linear-gradient(135deg,#ffd166,#ff9f1c);color:#1f1300;box-shadow:0 8px 28px rgba(255,159,28,.3)}
+.rtsub{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#d9dfeb}
+.rtsub:disabled{opacity:.35}
 .rthb{display:flex;gap:6px}
 .sheet.rts{z-index:31;background:#05080f;overflow:auto}
 .rts input[type=range]{width:min(52%,240px);accent-color:#16a34a}
 .rstry{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0}
 .rstry button{flex:1 1 30%;background:var(--panel2);border-radius:10px;padding:12px 6px;font-weight:800}
 @media (orientation:landscape){
-  .rttime{font-size:min(30vw,52vh)}
   .rtctl button{padding:10px}
 }
 
@@ -638,24 +684,23 @@ body.boardon .board{display:none!important}
 <div class="sheet rt" id="rt" hidden>
   <div class="rthead"><h2>乱取りタイマー</h2><span class="rthb"><button type="button" class="rtx" id="rtSnd">音の設定</button><button type="button" class="rtx" id="rtExit">終了</button></span></div>
   <div class="rtmain">
-    <div class="rtphase" id="rtPhase">準備OK</div>
-    <!-- 円の周りが時間とともに進む（上から時計回り） -->
-    <div class="rtring" id="rtRing">
-      <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="45"/><circle class="bar" id="rtBar" cx="50" cy="50" r="45" pathLength="100" stroke-dasharray="0 100"/></svg>
-      <div class="rttime" id="rtTime">4:00</div>
-    </div>
-    <div class="rtround" id="rtRound">全5本</div>
-  </div>
-  <div class="rtset" id="rtSet">
-    <!-- 選択欄：iPhone では押すとホイールが出て、フリックで分・秒を選べる -->
-    <div class="rtst"><span>乱取り</span><select id="rtWm" aria-label="乱取りの分"></select><i>分</i><select id="rtWs" aria-label="乱取りの秒"></select><i>秒</i></div>
-    <div class="rtst"><span>休憩</span><select id="rtRm" aria-label="休憩の分"></select><i>分</i><select id="rtRs" aria-label="休憩の秒"></select><i>秒</i></div>
-    <div class="rtst"><span>本数</span><select id="rtN" aria-label="本数"></select><i>本</i></div>
+    <!-- 乱取りと休憩の円（中身はスクリプトで作る）。円の周りと外側の目盛りが時間とともに進む。タップで時間を変更 -->
+    <div class="rtpair" id="rtPair"></div>
+    <button type="button" class="rtround" id="rtRoundBtn"><span id="rtRound">全5本</span><div class="rtdots" id="rtDots"></div></button>
   </div>
   <div class="rtctl">
     <button type="button" class="rtgo" id="rtGo">スタート</button>
     <button type="button" class="rtsub" id="rtSkip">次へ</button>
     <button type="button" class="rtsub" id="rtReset">リセット</button>
+  </div>
+</div>
+
+<!-- 時間・本数を選ぶホイール（上下にスクロールして選ぶ） -->
+<div class="rtp" id="rtp" hidden>
+  <div class="rtpbox">
+    <h3 id="rtpTitle">乱取りの時間</h3>
+    <div class="rtpwheels" id="rtpWheels"></div>
+    <div class="rtpbtn"><button type="button" id="rtpCancel">やめる</button><button type="button" id="rtpOk">決定</button></div>
   </div>
 </div>
 
@@ -831,6 +876,8 @@ function osaeAward(o){
   const prev = o.got; o.got = type;
   award(o.side, type, '（抑え込み ' + (o.t/1000).toFixed(1) + '秒' + (prev ? '・' + LABEL[prev] + 'から' : '') + '）', prev);
   if (!M.result) beep(150, 1500);
+  // Androidのみ振動（iPhoneは振動の仕組みがないので何もしない）。有効は1回、技ありは2回、一本は長く
+  try { if (navigator.vibrate) navigator.vibrate(type === 'ippon' ? 600 : type === 'waza' ? [200,120,200] : 200); } catch(e) {}
 }
 function endOsae(){
   const o = M.osae; if (!o) return;
@@ -1607,7 +1654,7 @@ $('svClose').onclick = () => { $('sv').hidden = true; };
 
 /* ---------- misc ---------- */
 let ac = null;
-function unlockAudio(){ try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {} }
+function unlockAudio(){ try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {} if (cfg.rtSnd === 'buzzer') rtLoadBuzzer(); }
 function beep(ms, f, force){
   if ((!cfg.buzzer && !force) || !ac) return;
   try { const o = ac.createOscillator(), gn = ac.createGain(); o.type = 'square'; o.frequency.value = f; gn.gain.value = .12;
@@ -1665,9 +1712,13 @@ function rtSound(kind){
   if (!ac || !cfg.rtVol) return;
   const t = cfg.rtSnd;
   if (t === 'buzzer') {
-    // 試合場の得点板のような、低く濁った「ブー」
-    const B = (at, d) => rtTone([['sawtooth', 165], ['square', 220], ['sawtooth', 247.5]], at, d, {g:.2, lp:2600});
-    ({work:() => B(0, 1), rest:() => B(0, 1.6), done:() => B(0, 2.6), warn:() => B(0, .35), tick:() => B(0, .15)})[kind]();
+    // 実際の柔道ブザーを録音した音（buzzer.wav、約1.9秒）。読み込み前は作った「ブー」で代わりに鳴らす
+    rtLoadBuzzer();
+    const B = rtBuzBuf ? (at, d) => rtSample(at, d)
+      : (at, d) => rtTone([['sawtooth', 165], ['square', 220], ['sawtooth', 247.5]], at, d || 1.6, {g:.2, lp:2600});
+    // 再開前の3・2・1だけは電子音「ピッ」
+    ({work:() => B(0), rest:() => B(0), done:() => { B(0); B(2.1); }, warn:() => B(0, .35),
+      tick:() => rtTone([['square', 880]], 0, .12, {g:.16})})[kind]();
   } else if (t === 'bell') {
     // ゴング「カーン」（倍音を重ねて減衰）
     const G = (at, d, f) => rtTone([['sine', f], ['sine', f * 2.76], ['sine', f * 5.4]], at, d, {g:.16, decay:true, att:.005});
@@ -1685,6 +1736,26 @@ function rtSound(kind){
   }
 }
 const rtBuzz = kind => rtSound(kind);
+// 録音したブザー音の読み込みと再生。dur を指定すると先頭からその長さだけ鳴らす（残り10秒・3・2・1の短い合図）
+let rtBuzBuf = null, rtBuzLoading = false;
+function rtLoadBuzzer(){
+  if (rtBuzBuf || rtBuzLoading || !ac) return;
+  rtBuzLoading = true;
+  fetch('buzzer.wav').then(r => r.arrayBuffer())
+    .then(b => new Promise((res, rej) => ac.decodeAudioData(b, res, rej)))
+    .then(b => { rtBuzBuf = b; })
+    .catch(() => { rtBuzLoading = false; });
+}
+function rtSample(at, dur){
+  const out = rtDest(); if (!out || !rtBuzBuf) return;
+  try {
+    const t0 = ac.currentTime + at, src = ac.createBufferSource(), g = ac.createGain();
+    src.buffer = rtBuzBuf; g.gain.value = .6;
+    if (dur) { g.gain.setValueAtTime(.6, t0 + Math.max(.02, dur - .04)); g.gain.linearRampToValueAtTime(0, t0 + dur); }
+    src.connect(g); g.connect(out);
+    src.start(t0); if (dur) src.stop(t0 + dur + .02);
+  } catch (e) {}
+}
 
 // 音の設定画面
 function rsSync(){
@@ -1733,33 +1804,136 @@ function rtRender(){
   el.classList.toggle('running', RT.running);
   el.classList.toggle('paused', !RT.running && act);
   el.classList.toggle('last', RT.running && RT.ph === 'work' && s <= 10);
-  $('rtTime').textContent = fmtMS(RT.ph === 'idle' ? cfg.rtWork : RT.ph === 'done' ? 0 : s);
-  // 円の進み具合：今の乱取り・休憩のうち経過した割合（終了は一周）
-  const full = act ? rtDur(RT.ph) : 0;
-  const p = RT.ph === 'done' ? 100 : full ? Math.min(100, Math.max(0, (1 - ms / full) * 100)) : 0;
-  $('rtBar').setAttribute('stroke-dasharray', p.toFixed(2) + ' 100');
+  // 乱取りと休憩の円をそれぞれ描く。動いている方は残り時間と進み具合、もう一方は設定した時間を表示
+  for (const k of ['work', 'rest']) {
+    const c = RTC[k], on = RT.ph === k, fin = RT.ph === 'done' && k === 'work';
+    const full = rtDur(k);
+    const p = fin ? 100 : on && full ? Math.min(100, Math.max(0, (1 - ms / full) * 100)) : 0;
+    c.el.classList.toggle('on', on || fin);
+    c.el.classList.toggle('dim', RT.ph !== 'idle' && !on && !fin);
+    c.time.textContent = fmtMS(on ? s : fin ? 0 : full / 1000);
+    c.ph.textContent = fin ? '終了' : k === 'work' ? '乱取り' + (on && !RT.running ? '・停止中' : '')
+      : (full ? '休憩' : '休憩なし') + (on && !RT.running ? '・停止中' : '');
+    c.bar.setAttribute('stroke-dasharray', p.toFixed(2) + ' 100');
+    // 先端の光る点と、外側の目盛り（進んだ分だけ点灯）
+    if (p > 0 && p < 100) { const a = p / 100 * 2 * Math.PI; c.dot.setAttribute('cx', (50 + 42 * Math.cos(a)).toFixed(2)); c.dot.setAttribute('cy', (50 + 42 * Math.sin(a)).toFixed(2)); c.dot.style.display = ''; }
+    else c.dot.style.display = 'none';
+    const lit = Math.floor(p / 100 * 60 + 1e-6);
+    if (lit !== c.lit) { c.lit = lit; [...c.ticks.children].forEach((t, i) => t.classList.toggle('on', i < lit)); }
+  }
+  // 本数のドット（済み＝点灯、今＝輪、これから＝暗い）。13本以上は文字だけ
+  const dk = cfg.rtRounds + ':' + RT.round + ':' + RT.ph;
+  if (dk !== rtDotKey) {
+    rtDotKey = dk;
+    const n = cfg.rtRounds, done = RT.ph === 'done' ? n : RT.ph === 'idle' ? 0 : RT.round - (RT.ph === 'rest' ? 0 : 1);
+    $('rtDots').innerHTML = n > 12 ? '' : Array.from({length:n}, (_, i) => '<i class="' + (i < done ? 'ok' : i === done && RT.ph === 'work' ? 'now' : '') + '"></i>').join('');
+  }
   rtSize();
-  $('rtPhase').textContent = {idle:'準備OK', work:'乱取り', rest:'休憩', done:'終了'}[RT.ph] + (!RT.running && act ? '（一時停止）' : '');
   $('rtRound').textContent = RT.ph === 'idle' ? '全' + cfg.rtRounds + '本'
     : RT.ph === 'done' ? 'お疲れさまでした（全' + cfg.rtRounds + '本）'
     : RT.round + '本目 / 全' + cfg.rtRounds + '本' + (RT.ph === 'rest' ? '　次は' + (RT.round + 1) + '本目' : '');
   $('rtGo').textContent = RT.running ? '一時停止' : RT.ph === 'idle' ? 'スタート' : RT.ph === 'done' ? 'もう一度' : '再開';
   $('rtSkip').disabled = !act;
-  rtSyncSel();
   if (RT.exitArm && performance.now() > RT.exitArm) { RT.exitArm = 0; $('rtExit').textContent = '終了'; }
 }
 // 円の大きさは空いている場所いっぱいに合わせ、時間の文字は円の内側に収まる大きさにする
-let rtSizeKey = '';
+let rtSizeKey = '', rtDotKey = '';
+const RTC = {};
+(() => {   // 乱取り・休憩の円を作る。外周の目盛り60本（5本ごとに長い）
+  let tk = '';
+  for (let i = 0; i < 60; i++) {
+    const a = i / 60 * 2 * Math.PI, mj = i % 5 === 0, r1 = mj ? 45.2 : 46, r2 = 48.6;
+    tk += '<line class="tk' + (mj ? ' mj' : '') + '" x1="' + (50 + r1 * Math.cos(a)).toFixed(2) + '" y1="' + (50 + r1 * Math.sin(a)).toFixed(2) +
+          '" x2="' + (50 + r2 * Math.cos(a)).toFixed(2) + '" y2="' + (50 + r2 * Math.sin(a)).toFixed(2) + '"/>';
+  }
+  $('rtPair').innerHTML = ['work', 'rest'].map(k =>
+    '<div class="rtring rtcard" data-k="' + k + '" role="button" tabindex="0" aria-label="' + (k === 'work' ? '乱取り' : '休憩') + 'の時間を変更">' +
+    '<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="rtGrad-' + k + '" x1="0" y1="0" x2="1" y2="1"><stop class="a" offset="0"/><stop class="b" offset="1"/></linearGradient></defs>' +
+    '<g class="ticks">' + tk + '</g><circle class="trk" cx="50" cy="50" r="42"/>' +
+    '<circle class="bar" cx="50" cy="50" r="42" pathLength="100" stroke-dasharray="0 100" style="stroke:url(#rtGrad-' + k + ')"/>' +
+    '<circle class="dot" cx="92" cy="50" r="2.6" style="display:none"/></svg>' +
+    '<div class="rtin"><div class="rtphase"></div><div class="rttime"></div><div class="rthint">タップで変更</div></div></div>').join('');
+  for (const el of $('rtPair').children) {
+    const k = el.dataset.k;
+    RTC[k] = {el, bar:el.querySelector('.bar'), dot:el.querySelector('.dot'), ticks:el.querySelector('.ticks'),
+              ph:el.querySelector('.rtphase'), time:el.querySelector('.rttime'), hint:el.querySelector('.rthint'), lit:-1};
+    el.onclick = () => rtPick(k);
+  }
+})();
+// 円の大きさは空いている場所いっぱいに合わせる（横持ちは横並び、縦持ちは縦並び）。時間の文字は円の内側に収まる大きさにする
 function rtSize(){
-  const main = $('rt').querySelector('.rtmain'), ring = $('rtRing');
-  const free = main.clientHeight - $('rtPhase').offsetHeight - $('rtRound').offsetHeight - 16;
-  const d = Math.max(120, Math.floor(Math.min(main.clientWidth * .92, free)));
-  const len = $('rtTime').textContent.length, key = d + ':' + len;
+  const main = $('rt').querySelector('.rtmain'), pair = $('rtPair');
+  const row = innerWidth > innerHeight, gap = 14;
+  const W = main.clientWidth, H = main.clientHeight - $('rtRoundBtn').offsetHeight - 10;
+  const d = Math.max(110, Math.floor(row ? Math.min(H, (W - gap) / 2 * .96) : Math.min(W * .9, (H - gap) / 2)));
+  const lens = RTC.work.time.textContent.length + ',' + RTC.rest.time.textContent.length, key = d + ':' + row + ':' + lens;
   if (key === rtSizeKey) return;
   rtSizeKey = key;
-  ring.style.width = ring.style.height = d + 'px';
-  $('rtTime').style.fontSize = Math.floor(d * .78 / (len * .58)) + 'px';
+  pair.classList.toggle('col', !row);
+  pair.style.gap = gap + 'px';
+  for (const k of ['work', 'rest']) {
+    const c = RTC[k], len = c.time.textContent.length;
+    c.el.style.width = c.el.style.height = d + 'px';
+    c.time.style.fontSize = Math.floor(Math.min(d * .64 / (len * .55), d * .32)) + 'px';
+    c.ph.style.fontSize = Math.max(12, Math.floor(d * .07)) + 'px';
+    c.ph.style.marginBottom = Math.floor(d * .03) + 'px';
+    c.hint.style.fontSize = Math.max(10, Math.floor(d * .048)) + 'px';
+    c.hint.style.marginTop = Math.floor(d * .04) + 'px';
+  }
 }
+addEventListener('resize', () => { if (!$('rt').hidden) rtRender(); });
+
+// 時間・本数をホイールで選ぶ（上下にスクロール、または数字をタップ）
+const RTP_H = 46;
+let rtpCur = null;
+function rtWheel(from, to, val, pad){
+  const w = document.createElement('div'); w.className = 'rtw';
+  let h = '<div class="pad"></div>';
+  for (let v = from; v <= to; v++) h += '<div data-v="' + v + '">' + (pad ? String(v).padStart(2, '0') : v) + '</div>';
+  w.innerHTML = h + '<div class="pad"></div>';
+  w.from = from;
+  w.val = () => from + Math.max(0, Math.min(to - from, Math.round(w.scrollTop / RTP_H)));
+  let raf = 0;
+  const mark = () => { raf = 0; const v = w.val(); for (const it of w.children) it.classList.toggle('sel', it.dataset.v === String(v)); };
+  w.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(mark); });
+  w.addEventListener('click', e => { const v = e.target.dataset && e.target.dataset.v; if (v != null) w.scrollTo({top:(+v - from) * RTP_H, behavior:'smooth'}); });
+  w.init = () => { w.scrollTop = (val - from) * RTP_H; mark(); };
+  return w;
+}
+function rtPick(k){
+  if (RT.running) { toast('一時停止すると変更できます'); return; }
+  const box = $('rtpWheels'); box.innerHTML = '';
+  const unit = t => { const u = document.createElement('span'); u.className = 'rtpu'; u.textContent = t; return u; };
+  let ws;
+  if (k === 'rounds') {
+    $('rtpTitle').textContent = '本数';
+    ws = [rtWheel(1, 30, cfg.rtRounds)];
+    box.append(ws[0], unit('本'));
+  } else {
+    const sec = k === 'work' ? cfg.rtWork : cfg.rtRest;
+    $('rtpTitle').textContent = k === 'work' ? '乱取りの時間' : '休憩の時間';
+    ws = [rtWheel(0, k === 'work' ? 20 : 10, Math.floor(sec / 60)), rtWheel(0, 59, sec % 60, true)];
+    box.append(ws[0], unit('分'), ws[1], unit('秒'));
+  }
+  rtpCur = {k, ws};
+  $('rtp').hidden = false;
+  ws.forEach(w => w.init());
+}
+$('rtpCancel').onclick = () => { $('rtp').hidden = true; rtpCur = null; };
+$('rtp').addEventListener('click', e => { if (e.target === $('rtp')) $('rtpCancel').onclick(); });
+$('rtpOk').onclick = () => {
+  if (!rtpCur) return;
+  const {k, ws} = rtpCur;
+  if (k === 'rounds') cfg.rtRounds = ws[0].val();
+  else {
+    const sec = ws[0].val() * 60 + ws[1].val();
+    if (k === 'work') cfg.rtWork = Math.max(5, sec);   // 乱取りは最低5秒
+    else cfg.rtRest = sec;                             // 休憩は0秒（なし）でもよい
+    if (RT.ph === k) RT.left = Math.min(RT.left, rtDur(k));   // 一時停止中に今の時間を短くしたとき
+  }
+  saveCfg(); $('rtp').hidden = true; rtpCur = null; rtRender();
+};
+$('rtRoundBtn').onclick = () => rtPick('rounds');
 function rtReset(){ Object.assign(RT, {ph:'idle', round:1, running:false, left:0, lastSec:null}); rtRender(); }
 function openRandori(){
   unlockAudio(); keepAwake();
@@ -1779,27 +1953,6 @@ $('rtSkip').onclick = () => {
   rtNext(performance.now()); rtRender();
 };
 $('rtReset').onclick = rtReset;
-// 分・秒・本数の選択欄（分は乱取り0〜20分・休憩0〜10分、秒は0〜59秒、本数は1〜30本）
-function rtFill(id, from, to, pad){
-  const s = $(id);
-  for (let v = from; v <= to; v++) { const o = document.createElement('option'); o.value = v; o.textContent = pad ? String(v).padStart(2, '0') : v; s.appendChild(o); }
-}
-rtFill('rtWm', 0, 20); rtFill('rtWs', 0, 59, true);
-rtFill('rtRm', 0, 10); rtFill('rtRs', 0, 59, true);
-rtFill('rtN', 1, 30);
-function rtSyncSel(){
-  const set = (id, v) => { const s = $(id); if (document.activeElement !== s && s.value !== String(v)) s.value = String(v); };
-  set('rtWm', Math.floor(cfg.rtWork / 60)); set('rtWs', cfg.rtWork % 60);
-  set('rtRm', Math.floor(cfg.rtRest / 60)); set('rtRs', cfg.rtRest % 60);
-  set('rtN', cfg.rtRounds);
-}
-function rtFromSel(){
-  cfg.rtWork = Math.max(5, +$('rtWm').value * 60 + +$('rtWs').value);   // 乱取りは最低5秒
-  cfg.rtRest = +$('rtRm').value * 60 + +$('rtRs').value;               // 休憩は0秒（なし）でもよい
-  cfg.rtRounds = +$('rtN').value;
-  saveCfg(); rtRender();
-}
-['rtWm', 'rtWs', 'rtRm', 'rtRs', 'rtN'].forEach(id => $(id).addEventListener('change', rtFromSel));
 // 終了は誤って押さないよう、動いている間は2回押しで閉じる
 $('rtExit').onclick = () => {
   if (RT.running && !RT.exitArm) { RT.exitArm = performance.now() + 3000; $('rtExit').textContent = 'もう一度押すと終了'; return; }
@@ -1843,7 +1996,7 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 /* ---------- settings sheet ---------- */
 function openSettings(){
   renderCamSetting();
-  { const m = pickMime(); $('verInfo').textContent = 'バージョン 41　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
+  { const m = pickMime(); $('verInfo').textContent = 'バージョン 46　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
