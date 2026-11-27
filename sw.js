@@ -2,8 +2,8 @@
 // ページ本体（index.html）はネット優先：つながっていれば常に最新版を表示し、
 // 電波がない・3秒以内に応答がないときだけ保存しておいた版で起動する（体育館などでも待たされない）。
 // アイコンなどその他のファイルはキャッシュ優先で、裏で最新版に更新する。
-const CACHE = 'judo-scorecam-v48';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './buzzer.wav'];
+const CACHE = 'judo-scorecam-v49';
+const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
