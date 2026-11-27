@@ -173,6 +173,54 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .log .go{background:var(--panel2);border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700}
 .log .empty{color:var(--muted);font-size:13px;padding:4px 0}
 
+/* ===== デザイン：黒地にうっすら光る背景、半透明のパネル、グラデーションのボタン、デジタル時計風の数字 ===== */
+:root{--bg:#060910;--panel:rgba(255,255,255,.045);--panel2:rgba(255,255,255,.085);--line:rgba(255,255,255,.09);
+  --num:"DIN Alternate","Bahnschrift","DIN Condensed","Roboto Condensed","Helvetica Neue",sans-serif}
+body{background:radial-gradient(130% 55% at 50% -8%,#15244a 0%,rgba(6,9,16,0) 62%) no-repeat,#060910}
+.brand{letter-spacing:.14em;font-size:14px;background:linear-gradient(90deg,#fff,#9fb0d0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ib{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:13px}
+.rec.on{border-color:transparent;box-shadow:0 0 14px rgba(229,56,59,.6)}
+.stage{border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.start{background:radial-gradient(circle at 50% 35%,#1c2f58 0%,#0a1122 55%,#04060c 100%)}
+.pbtn{background:linear-gradient(135deg,#ffd166,#ff9f1c);box-shadow:0 8px 24px rgba(255,159,28,.3)}
+.start .row.main .pbtn.nc{background:linear-gradient(180deg,#ffffff,#d9dfe8);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.start .row.sub .gbtn{background:linear-gradient(180deg,#cfd6e0,#aeb8c7)}
+/* 試合時間 */
+.clock{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid var(--line)}
+.clock #clk{font-family:var(--num);font-weight:700;text-shadow:0 0 22px rgba(255,178,31,.45)}
+.clock.run #clk{text-shadow:0 0 22px rgba(255,255,255,.3)}
+.clock.gs #clk{text-shadow:0 0 22px rgba(255,122,26,.5)}
+.osae b{font-family:var(--num);font-weight:700}
+.osae{box-shadow:0 0 18px rgba(255,178,31,.35)}
+/* 操作ボタン */
+.hajime{background:linear-gradient(135deg,#5cf59a,#12b76a);color:#03170b;box-shadow:0 8px 24px rgba(18,183,106,.32)}
+.hajime.mate{background:linear-gradient(135deg,#ff7a6b,#e5173f);color:#fff;box-shadow:0 8px 24px rgba(229,23,63,.35)}
+.toketa{background:linear-gradient(135deg,#ffd166,#ff9f1c);box-shadow:0 8px 24px rgba(255,159,28,.3)}
+.ob.w{background:linear-gradient(180deg,#ffffff,#d9dfe8)}
+.ob.b{background:linear-gradient(180deg,var(--b-btn),var(--blue-side))}
+.sono{background:rgba(255,178,31,.08)}
+.rbtn{background:linear-gradient(135deg,#a879ff,#6d28d9);box-shadow:0 6px 20px rgba(109,40,217,.35)}
+.seg,.mark{border:1px solid var(--line)}
+/* 選手のスコア欄 */
+.side{box-shadow:0 10px 28px rgba(0,0,0,.4)}
+.side.w{background:linear-gradient(160deg,#ffffff 0%,#dde2ea 100%)}
+.side.b{background:linear-gradient(160deg,var(--b-btn) 0%,var(--blue-side) 70%)}
+.side.win{box-shadow:0 0 0 3px var(--ok),0 0 26px rgba(47,191,113,.55)}
+.sname{letter-spacing:.06em}
+.tally .t b{font-family:var(--num);font-weight:700;font-size:30px}
+.side.w .sbtns button{background:rgba(18,24,38,.06);border:1px solid rgba(18,24,38,.12)}
+.side.b .sbtns button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2)}
+.sbtns button:active,.ob:active,.hajime:active,.tools button:active{transform:scale(.97)}
+/* 下のボタンと記録 */
+.tools button{background:var(--panel);border:1px solid var(--line)}
+.tools #btnNew{background:linear-gradient(135deg,#2dd4bf,#0d9488);border-color:transparent;box-shadow:0 6px 18px rgba(13,148,136,.3)}
+.tools #btnNew.armed{background:var(--red)}
+.log{border:1px solid var(--line)}
+.log h2{letter-spacing:.14em}
+.banner{box-shadow:0 6px 20px rgba(47,191,113,.3)}
+.st .done{background:linear-gradient(135deg,#ffd166,#ff9f1c)}
+.toast{box-shadow:0 8px 24px rgba(0,0,0,.4)}
+
 /* 乱取りタイマー */
 /* 状態ごとの色：--c1/--c2 リングの色、--bg 背景の光、--tc 数字の色 */
 .sheet.rt{z-index:30;gap:10px;--c1:#ffd166;--c2:#ff9f1c;--bg:rgba(255,178,31,.13);--tc:#ffe2a3;
@@ -193,11 +241,10 @@ body.red{--blue-side:#c8102e;--b-btn:#e0324b;--b-hl:#fff0a0}
 .rthint{color:#8a94a8;font-weight:700;letter-spacing:.08em;white-space:nowrap}
 .rt.running .rthint{visibility:hidden}
 /* 時間・本数を選ぶホイール */
-.rtp{position:fixed;inset:0;z-index:32;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.rtp{position:fixed;inset:0;z-index:32;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px}
 .rtp[hidden]{display:none}
-.rtpbox{width:min(100%,460px);background:#0d1320;border:1px solid rgba(255,255,255,.08);border-radius:22px 22px 0 0;
-  padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.5)}
-@media (orientation:landscape){ .rtp{align-items:center} .rtpbox{border-radius:22px;padding-bottom:16px} }
+.rtpbox{width:min(100%,460px);background:#0d1320;border:1px solid rgba(255,255,255,.08);border-radius:22px;
+  padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 .rtpbox h3{text-align:center;font-size:15px;color:#aab3c5;letter-spacing:.12em;margin:0 0 8px}
 .rtpwheels{position:relative;display:flex;justify-content:center;align-items:center;gap:4px}
 .rtpwheels::before{content:"";position:absolute;left:8px;right:8px;top:50%;height:46px;margin-top:-23px;border-radius:12px;
@@ -1157,6 +1204,8 @@ function draw(){
 }
 requestAnimationFrame(draw);
 
+// 時計・抑え込みの数字に使うデジタル時計風の書体（iPhone・iPad は DIN、Windows は Bahnschrift。なければ普通の書体）
+const NUMF = '"DIN Alternate","Bahnschrift",';
 // カメラなしモードの大きなスコアボード：[左の選手][時計・抑え込み][右の選手]（左右は画面の配置と同じ）
 // C：描く先のキャンバス（省略時は録画用のメイン画面）。カメラ表示中に切り替えたときは、録画を邪魔しないよう別のキャンバスに描く
 function drawBoard(C){
@@ -1228,8 +1277,11 @@ function drawBoard(C){
   const cf = Math.min(cw / (clk.length*.56), HH*.46), cyc = T + HH*.36;
   g.textAlign = 'center';
   g.fillStyle = M.gs ? '#ff7a1a' : (M.running && !M.sono ? '#ffffff' : '#ffb21f');
-  g.font = '800 ' + Math.round(cf) + 'px ' + F;
+  g.font = '800 ' + Math.round(cf) + 'px ' + NUMF + F;
+  g.shadowColor = M.gs ? 'rgba(255,122,26,.45)' : (M.running && !M.sono ? 'rgba(255,255,255,.22)' : 'rgba(255,178,31,.4)');
+  g.shadowBlur = cf*.06;
   g.fillText(clk, cx, cyc);
+  g.shadowBlur = 0;
   g.fillStyle = '#8e9bb5'; g.font = '800 ' + Math.round(Math.min(cf*.17, HH*.07)) + 'px ' + F;
   g.fillText(M.sono ? 'そのまま' : M.gs ? 'ゴールデンスコア' : (M.running ? '試合中' : (M.remain < M.dur ? '待て' : '本戦 ' + fmtClock(M.dur))), cx, cyc + cf*.56);
 
@@ -1280,8 +1332,11 @@ function drawBoardLand(g, W, H0, rr, F, T){
   const cyc = resH + (topH - resH)*.53;
   g.textAlign = 'center';
   g.fillStyle = M.gs ? '#ff7a1a' : (M.running && !M.sono ? '#ffffff' : '#ffb21f');
-  g.font = '800 ' + Math.round(cf) + 'px ' + F;
+  g.font = '800 ' + Math.round(cf) + 'px ' + NUMF + F;
+  g.shadowColor = M.gs ? 'rgba(255,122,26,.45)' : (M.running && !M.sono ? 'rgba(255,255,255,.22)' : 'rgba(255,178,31,.4)');
+  g.shadowBlur = cf*.06;   // 数字をほんのり光らせる
   g.fillText(clk, cx, cyc);
+  g.shadowBlur = 0;
 
   // 下半分：左右に選手、真ん中に抑え込み
   const by = topH + gap*.5, bh = H - by - gap;
@@ -1302,7 +1357,7 @@ function drawBoardLand(g, W, H0, rr, F, T){
     const vy = y + h*.66;
     const colX = c => x0 + colW*(c + .5);
     const lab = (t, c) => { g.textAlign = 'right'; g.fillStyle = ink; g.globalAlpha = .75; g.font = font(Math.min(h*.26, colW*.34)); g.fillText(t, colX(c) - colW*.03, vy); g.globalAlpha = 1; };
-    const val = (v, c) => { g.textAlign = 'left'; g.fillStyle = ink; g.font = font(Math.min(h*.56, colW*.68)); g.fillText(String(v), colX(c) + colW*.02, vy + h*.02); };
+    const val = (v, c) => { g.textAlign = 'left'; g.fillStyle = ink; g.font = '800 ' + Math.round(Math.min(h*.56, colW*.68)) + 'px ' + NUMF + F; g.fillText(String(v), colX(c) + colW*.02, vy + h*.02); };
     let c = 0;
     if (sc.ippon || (cfg.awasete && sc.waza >= 2)) {
       const n = yk ? 2 : 1, bx = x0 + colW*.06, bw = colW*n - colW*.12, bhh = h*.5, byy = vy - bhh/2;
@@ -1339,7 +1394,7 @@ function drawBoardLand(g, W, H0, rr, F, T){
     g.font = font(Math.min(bh*.12, midW*.13));
     g.fillText(M.osae ? '抑え込み' : '解けた', midX + midW/2, by + bh*.16);
     const sec = (od.t/1000).toFixed(1);
-    g.font = font(Math.min(bh*.6, midW*.92 / (sec.length*.58)));
+    g.font = '800 ' + Math.round(Math.min(bh*.6, midW*.92 / (sec.length*.58))) + 'px ' + NUMF + F;
     g.fillText(sec, midX + midW/2, by + bh*.6);
     g.globalAlpha = 1;
   } else {
@@ -1441,7 +1496,7 @@ function drawOverlay(){
   g.fillStyle = 'rgba(8,12,22,.93)'; g.fillRect(cx0, y0, clockW*u, bh);
   g.textAlign = 'center';
   g.fillStyle = M.gs ? '#ff7a1a' : (M.running && !M.sono ? '#ffffff' : '#ffb21f');
-  g.font = '800 ' + Math.round(u*.92) + 'px ' + F;
+  g.font = '800 ' + Math.round(u*.92) + 'px ' + NUMF + F;
   g.fillText(M.gs ? fmtClock(M.gsT, true) : fmtClock(M.remain), cx0 + clockW*u/2, y0 + bh*.43);
   g.font = '700 ' + Math.round(u*.27) + 'px ' + F; g.fillStyle = '#8e9bb5';
   g.fillText(M.sono ? 'SONOMAMA' : M.gs ? 'GOLDEN SCORE' : (M.running ? '' : 'MATE'), cx0 + clockW*u/2, y0 + bh*.85);
@@ -1996,7 +2051,7 @@ $('tmCancel').onclick = () => { $('tm').hidden = true; };
 /* ---------- settings sheet ---------- */
 function openSettings(){
   renderCamSetting();
-  { const m = pickMime(); $('verInfo').textContent = 'バージョン 46　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
+  { const m = pickMime(); $('verInfo').textContent = 'バージョン 48　録画形式：' + (m ? (m.includes('mp4') ? 'MP4' : 'WebM') : '非対応'); }
   $('sNameW').value = cfg.nameW; $('sNameB').value = cfg.nameB; $('sDur').value = String(cfg.dur); $('sSwap').checked = cfg.swap; $('sColor').value = cfg.color; $('sRp').value = String(cfg.replay);
   $('sGs').checked = cfg.gs; $('sYuko').checked = cfg.yuko; $('sAwa').checked = cfg.awasete;
   $('sOI').value = cfg.oI; $('sOW').value = cfg.oW; $('sOY').value = cfg.oY;
